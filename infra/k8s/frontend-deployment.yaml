@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wysh-frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: wysh-frontend
+  template:
+    metadata:
+      labels:
+        app: wysh-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: ghcr.io/salomi2704/sellers-hub-frontend:latest
+          ports:
+            - containerPort: 4173

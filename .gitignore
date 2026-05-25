@@ -1,0 +1,8 @@
+node_modules
+coverage
+dist
+*.log
+apps/frontend/dist
+services/api/dist
+services/api/node_modules
+apps/frontend/node_modules

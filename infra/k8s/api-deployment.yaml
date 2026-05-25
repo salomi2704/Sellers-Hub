@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wysh-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: wysh-api
+  template:
+    metadata:
+      labels:
+        app: wysh-api
+    spec:
+      containers:
+        - name: api
+          image: ghcr.io/salomi2704/sellers-hub-api:latest
+          ports:
+            - containerPort: 3000
+          readinessProbe:
+            httpGet:
+              path: /api/v1/health/readiness
+              port: 3000
+          livenessProbe:
+            httpGet:
+              path: /api/v1/health/liveness
+              port: 3000
