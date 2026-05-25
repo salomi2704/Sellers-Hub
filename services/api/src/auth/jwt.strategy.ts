@@ -2,7 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { RequestUser } from '../common/request-user.interface';
+import { JwtPayload } from '../common/interfaces/jwt-payload.interface';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -10,12 +10,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey:
-        configService.get<string>('JWT_SECRET') ?? 'wysh-local-secret',
+      secretOrKey: configService.get<string>('JWT_SECRET') ?? 'wysh-local-secret',
     });
   }
 
-  validate(payload: RequestUser): RequestUser {
+  validate(payload: JwtPayload): JwtPayload {
     if (payload.type !== 'access') {
       throw new UnauthorizedException('Access token required.');
     }

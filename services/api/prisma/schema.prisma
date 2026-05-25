@@ -1,0 +1,245 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  OWNER
+  MANAGER
+  OPERATIONS
+  FINANCE
+  SUPPORT
+  ADMIN
+}
+
+enum OrderStatus {
+  NEW
+  CONFIRMED
+  PACKED
+  SHIPPED
+  DELIVERED
+}
+
+enum ShipmentStatus {
+  CREATED
+  READY_FOR_PICKUP
+  IN_TRANSIT
+  OUT_FOR_DELIVERY
+  DELIVERED
+  EXCEPTION
+}
+
+enum TransactionType {
+  ORDER_CAPTURE
+  REFUND
+  ADJUSTMENT
+  PAYOUT
+}
+
+enum SettlementStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+model Seller {
+  id        String    @id @default(uuid())
+  name      String
+  slug      String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  stores      Store[]
+  users       User[]
+  products    Product[]
+  skus        Sku[]
+  orders      Order[]
+  shipments   Shipment[]
+  transactions Transaction[]
+  settlements Settlement[]
+  auditLogs   AuditLog[]
+}
+
+model Store {
+  id        String    @id @default(uuid())
+  sellerId  String
+  name      String
+  slug      String
+  currency  String    @default("INR")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  seller    Seller    @relation(fields: [sellerId], references: [id])
+  users       User[]
+  products    Product[]
+  skus        Sku[]
+  orders      Order[]
+  shipments   Shipment[]
+  transactions Transaction[]
+  settlements Settlement[]
+  auditLogs   AuditLog[]
+
+  @@unique([sellerId, slug])
+  @@index([sellerId, deletedAt])
+}
+
+model User {
+  id           String    @id @default(uuid())
+  sellerId     String
+  storeId      String
+  email        String
+  passwordHash String
+  role         Role
+  permissions  String[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+  seller       Seller    @relation(fields: [sellerId], references: [id])
+  store        Store     @relation(fields: [storeId], references: [id])
+  auditLogs    AuditLog[]
+
+  @@unique([sellerId, storeId, email])
+  @@index([sellerId, storeId, role])
+}
+
+model Product {
+  id          String    @id @default(uuid())
+  sellerId    String
+  storeId     String
+  name        String
+  description String?
+  status      String    @default("ACTIVE")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+  seller      Seller    @relation(fields: [sellerId], references: [id])
+  store       Store     @relation(fields: [storeId], references: [id])
+  skus        Sku[]
+
+  @@index([sellerId, storeId, status])
+  @@index([sellerId, storeId, deletedAt])
+}
+
+model Sku {
+  id          String    @id @default(uuid())
+  sellerId    String
+  storeId     String
+  productId   String
+  code        String
+  price       Int
+  inventory   Int
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+  seller      Seller    @relation(fields: [sellerId], references: [id])
+  store       Store     @relation(fields: [storeId], references: [id])
+  product     Product   @relation(fields: [productId], references: [id])
+
+  @@unique([sellerId, storeId, code])
+  @@index([sellerId, storeId, productId])
+}
+
+model Order {
+  id          String      @id @default(uuid())
+  sellerId    String
+  storeId     String
+  orderNumber String
+  status      OrderStatus @default(NEW)
+  totalAmount Int
+  version     Int         @default(1)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  deletedAt   DateTime?
+  seller      Seller      @relation(fields: [sellerId], references: [id])
+  store       Store       @relation(fields: [storeId], references: [id])
+  shipments   Shipment[]
+  transactions Transaction[]
+  settlements Settlement[]
+
+  @@unique([sellerId, storeId, orderNumber])
+  @@index([sellerId, storeId, status, createdAt])
+}
+
+model Shipment {
+  id         String         @id @default(uuid())
+  sellerId   String
+  storeId    String
+  orderId    String
+  status     ShipmentStatus @default(CREATED)
+  carrier    String?
+  awb        String?
+  timeline   Json
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  seller     Seller         @relation(fields: [sellerId], references: [id])
+  store      Store          @relation(fields: [storeId], references: [id])
+  order      Order          @relation(fields: [orderId], references: [id])
+
+  @@index([sellerId, storeId, status])
+  @@index([orderId])
+}
+
+model Transaction {
+  id             String          @id @default(uuid())
+  sellerId       String
+  storeId        String
+  orderId        String?
+  settlementId   String?
+  type           TransactionType
+  amount         Int
+  currency       String          @default("INR")
+  idempotencyKey String
+  metadata       Json?
+  createdAt      DateTime        @default(now())
+  seller         Seller          @relation(fields: [sellerId], references: [id])
+  store          Store           @relation(fields: [storeId], references: [id])
+  order          Order?          @relation(fields: [orderId], references: [id])
+  settlement     Settlement?     @relation(fields: [settlementId], references: [id])
+
+  @@unique([sellerId, storeId, idempotencyKey])
+  @@index([sellerId, storeId, type, createdAt])
+}
+
+model Settlement {
+  id                  String           @id @default(uuid())
+  sellerId            String
+  storeId             String
+  orderId             String?
+  status              SettlementStatus @default(PENDING)
+  amount              Int
+  payoutIdempotencyKey String?
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+  settledAt           DateTime?
+  seller              Seller           @relation(fields: [sellerId], references: [id])
+  store               Store            @relation(fields: [storeId], references: [id])
+  order               Order?           @relation(fields: [orderId], references: [id])
+  transactions        Transaction[]
+
+  @@unique([sellerId, storeId, payoutIdempotencyKey])
+  @@index([sellerId, storeId, status, createdAt])
+}
+
+model AuditLog {
+  id            String   @id @default(uuid())
+  sellerId      String
+  storeId       String
+  userId        String?
+  entityType    String
+  entityId      String
+  action        String
+  correlationId String
+  metadata      Json?
+  createdAt     DateTime @default(now())
+  seller        Seller   @relation(fields: [sellerId], references: [id])
+  store         Store    @relation(fields: [storeId], references: [id])
+  user          User?    @relation(fields: [userId], references: [id])
+
+  @@index([sellerId, storeId, entityType, entityId])
+  @@index([createdAt])
+}

@@ -1,52 +1,40 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { Permission } from '../common/enums/permission.enum';
+import { Role } from '../common/enums/role.enum';
+import { JwtPayload } from '../common/interfaces/jwt-payload.interface';
+import { PrismaService } from '../infrastructure/prisma/prisma.service';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 
-const demoUser = {
-  id: 'user_owner_demo',
-  email: 'owner@wysh.test',
-  passwordHash: '$2b$10$Mh.YPA29xTZUJmjEbEnaYul7hG1fRXnNWkNwILUKqnkSyLdXHPrcW',
-  sellerId: 'seller_demo',
-  storeId: 'store_wysh',
-  role: 'OWNER' as const,
-  permissions: ['catalog:write', 'orders:manage', 'finance:read', 'admin:read'],
-};
-
 @Injectable()
 export class AuthService {
-  constructor(private readonly jwtService: JwtService) {}
+  constructor(
+    private readonly jwtService: JwtService,
+    private readonly prisma: PrismaService,
+  ) {}
 
   async login(payload: LoginDto) {
-    const passwordMatches = await bcrypt.compare(
-      payload.password,
-      demoUser.passwordHash,
-    );
+    const user = await this.prisma.user.findFirst({
+      where: { email: payload.email, deletedAt: null },
+    });
 
-    if (!passwordMatches || payload.email !== demoUser.email) {
+    if (!user) {
       throw new UnauthorizedException('Invalid credentials.');
     }
 
-    const accessToken = await this.jwtService.signAsync({
-      sub: demoUser.id,
-      email: demoUser.email,
-      sellerId: demoUser.sellerId,
-      storeId: demoUser.storeId,
-      role: demoUser.role,
-      permissions: demoUser.permissions,
-      type: 'access',
-    });
+    const passwordMatches = await bcrypt.compare(payload.password, user.passwordHash);
+    if (!passwordMatches) {
+      throw new UnauthorizedException('Invalid credentials.');
+    }
+
+    const claims = this.buildClaims(user);
+
+    const accessToken = await this.jwtService.signAsync(claims);
     const refreshToken = await this.jwtService.signAsync(
-      {
-        sub: demoUser.id,
-        email: demoUser.email,
-        sellerId: demoUser.sellerId,
-        storeId: demoUser.storeId,
-        role: demoUser.role,
-        permissions: demoUser.permissions,
-        type: 'refresh',
-      },
+      { ...claims, type: 'refresh' },
       { expiresIn: '7d' },
     );
 
@@ -54,30 +42,45 @@ export class AuthService {
       accessToken,
       refreshToken,
       user: {
-        email: demoUser.email,
-        sellerId: demoUser.sellerId,
-        storeId: demoUser.storeId,
-        role: demoUser.role,
-        permissions: demoUser.permissions,
+        id: user.id,
+        email: user.email,
+        sellerId: user.sellerId,
+        storeId: user.storeId,
+        role: user.role,
+        permissions: user.permissions,
       },
     };
   }
 
   async refresh(payload: RefreshTokenDto) {
-    const decoded = await this.jwtService.verifyAsync<{
-      type: 'access' | 'refresh';
-      email: string;
-      sellerId: string;
-      storeId: string;
-      role: typeof demoUser.role;
-      permissions: string[];
-      sub: string;
-    }>(payload.refreshToken);
+    const decoded = await this.jwtService.verifyAsync<JwtPayload>(payload.refreshToken);
 
     if (decoded.type !== 'refresh') {
       throw new UnauthorizedException('Refresh token required.');
     }
 
-    return this.login({ email: decoded.email, password: 'Password@123' });
+    const user = await this.prisma.user.findUnique({ where: { id: decoded.sub } });
+    if (!user || user.deletedAt) {
+      throw new UnauthorizedException('User not found.');
+    }
+
+    const claims = this.buildClaims(user);
+
+    return {
+      accessToken: await this.jwtService.signAsync(claims),
+      refreshToken: await this.jwtService.signAsync({ ...claims, type: 'refresh' }, { expiresIn: '7d' }),
+    };
+  }
+
+  private buildClaims(user: User): JwtPayload {
+    return {
+      sub: user.id,
+      email: user.email,
+      sellerId: user.sellerId,
+      storeId: user.storeId,
+      role: user.role as Role,
+      permissions: user.permissions as Permission[],
+      type: 'access',
+    };
   }
 }

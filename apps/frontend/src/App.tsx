@@ -4,6 +4,7 @@ import { Area, AreaChart, Bar, BarChart, CartesianGrid, Line, LineChart, Respons
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { create } from 'zustand'
+import { hasPermission, type Permission } from './security/permissions'
 
 type Role = 'OWNER' | 'MANAGER' | 'OPERATIONS' | 'FINANCE' | 'SUPPORT' | 'ADMIN'
 type ProductStatus = 'DRAFT' | 'ACTIVE' | 'ARCHIVED'
@@ -176,7 +177,7 @@ function ProtectedRoute() {
 
 function PermissionRoute({ children, permission }: { children: ReactNode; permission: string }) {
   const permissions = useSessionStore((state) => state.permissions)
-  if (!permissions.includes(permission)) {
+  if (!hasPermission(permissions, permission as Permission)) {
     return <EmptyState title="Admin access required" description="This area is limited to roles with the admin:read permission." />
   }
   return <>{children}</>
