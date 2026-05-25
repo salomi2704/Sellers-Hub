@@ -1,0 +1,13 @@
+image:
+  frontend: ghcr.io/salomi2704/sellers-hub-frontend:latest
+  api: ghcr.io/salomi2704/sellers-hub-api:latest
+
+ingress:
+  enabled: true
+  className: nginx
+  host: wysh.example.com
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5

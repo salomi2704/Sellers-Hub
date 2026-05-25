@@ -1,0 +1,14 @@
+{
+  "name": "wysh-sellers-hub",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Wysh Sellers Hub enterprise commerce operating system monorepo",
+  "scripts": {
+    "lint": "npm --prefix apps/frontend run lint && npm --prefix services/api run lint",
+    "build": "npm --prefix apps/frontend run build && npm --prefix services/api run build",
+    "test": "npm --prefix services/api run test -- --runInBand",
+    "test:e2e": "npm --prefix services/api run test:e2e",
+    "start:frontend": "npm --prefix apps/frontend run dev -- --host 0.0.0.0 --port 4173",
+    "start:api": "npm --prefix services/api run start:dev"
+  }
+}
