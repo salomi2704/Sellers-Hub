@@ -10,7 +10,7 @@
     "test:e2e": "npm --prefix services/api run test:e2e",
     "start:frontend": "npm --prefix apps/frontend run dev -- --host 0.0.0.0 --port 4173",
     "start:api": "npm --prefix services/api run start:dev",
-    "typecheck": "npm --prefix apps/frontend exec tsc -b && npm --prefix services/api run typecheck"
+    "typecheck": "npm --prefix apps/frontend exec -- tsc -b && npm --prefix services/api run typecheck"
   },
   "packageManager": "pnpm@10.0.0"
 }

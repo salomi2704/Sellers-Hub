@@ -8,6 +8,12 @@ import { AuditLogService } from './audit-log.service';
 
 @Module({
   controllers: [AuditLogController],
-  providers: [AuditLogService, TenantContextService, TenantRepository, TenantInterceptor, RbacGuard],
+  providers: [
+    AuditLogService,
+    TenantContextService,
+    TenantRepository,
+    TenantInterceptor,
+    RbacGuard,
+  ],
 })
 export class AuditLogModule {}

@@ -10,6 +10,12 @@ import { ProductService } from './product.service';
 @Module({
   imports: [AuditModule],
   controllers: [ProductController],
-  providers: [ProductService, TenantContextService, TenantRepository, TenantInterceptor, RbacGuard],
+  providers: [
+    ProductService,
+    TenantContextService,
+    TenantRepository,
+    TenantInterceptor,
+    RbacGuard,
+  ],
 })
 export class ProductModule {}

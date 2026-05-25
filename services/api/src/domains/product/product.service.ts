@@ -21,7 +21,9 @@ export class ProductService {
         sellerId,
         storeId,
         deletedAt: null,
-        ...(query.search ? { name: { contains: query.search, mode: 'insensitive' } } : {}),
+        ...(query.search
+          ? { name: { contains: query.search, mode: 'insensitive' } }
+          : {}),
       },
       skip: (query.page - 1) * query.pageSize,
       take: query.pageSize,

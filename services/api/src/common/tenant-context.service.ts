@@ -21,7 +21,9 @@ export class TenantContextService {
 
   getTenant() {
     if (!this.sellerId || !this.storeId || !this.correlationId) {
-      throw new ForbiddenException('Tenant scope is required for this operation.');
+      throw new ForbiddenException(
+        'Tenant scope is required for this operation.',
+      );
     }
 
     return {

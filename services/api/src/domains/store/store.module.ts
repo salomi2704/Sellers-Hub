@@ -8,6 +8,12 @@ import { StoreService } from './store.service';
 
 @Module({
   controllers: [StoreController],
-  providers: [StoreService, TenantContextService, TenantRepository, TenantInterceptor, RbacGuard],
+  providers: [
+    StoreService,
+    TenantContextService,
+    TenantRepository,
+    TenantInterceptor,
+    RbacGuard,
+  ],
 })
 export class StoreModule {}

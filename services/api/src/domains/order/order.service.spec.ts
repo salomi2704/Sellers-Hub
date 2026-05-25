@@ -9,12 +9,18 @@ describe('OrderService', () => {
   it('rejects invalid state transitions', async () => {
     const prisma = {
       order: {
-        findFirstOrThrow: jest.fn().mockResolvedValue({ id: 'o1', status: OrderStatus.NEW }),
+        findFirstOrThrow: jest
+          .fn()
+          .mockResolvedValue({ id: 'o1', status: OrderStatus.NEW }),
       },
     } as unknown as PrismaService;
 
     const tenantRepository = {
-      scope: () => ({ sellerId: 'seller_demo', storeId: 'store_wysh', correlationId: 'c1' }),
+      scope: () => ({
+        sellerId: 'seller_demo',
+        storeId: 'store_wysh',
+        correlationId: 'c1',
+      }),
     } as TenantRepository;
 
     const audit = { log: jest.fn() } as unknown as AuditService;

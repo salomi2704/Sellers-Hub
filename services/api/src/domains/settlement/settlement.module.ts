@@ -11,6 +11,12 @@ import { SettlementService } from './settlement.service';
 @Module({
   imports: [AuditModule, QueueModule],
   controllers: [SettlementController],
-  providers: [SettlementService, TenantContextService, TenantRepository, TenantInterceptor, RbacGuard],
+  providers: [
+    SettlementService,
+    TenantContextService,
+    TenantRepository,
+    TenantInterceptor,
+    RbacGuard,
+  ],
 })
 export class SettlementModule {}

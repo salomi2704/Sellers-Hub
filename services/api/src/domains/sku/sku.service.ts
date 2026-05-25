@@ -19,7 +19,9 @@ export class SkuService {
         sellerId,
         storeId,
         deletedAt: null,
-        ...(query.search ? { code: { contains: query.search, mode: 'insensitive' } } : {}),
+        ...(query.search
+          ? { code: { contains: query.search, mode: 'insensitive' } }
+          : {}),
       },
       skip: (query.page - 1) * query.pageSize,
       take: query.pageSize,

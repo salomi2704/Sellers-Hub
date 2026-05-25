@@ -8,6 +8,12 @@ import { SkuService } from './sku.service';
 
 @Module({
   controllers: [SkuController],
-  providers: [SkuService, TenantContextService, TenantRepository, TenantInterceptor, RbacGuard],
+  providers: [
+    SkuService,
+    TenantContextService,
+    TenantRepository,
+    TenantInterceptor,
+    RbacGuard,
+  ],
 })
 export class SkuModule {}

@@ -31,7 +31,9 @@ export class OrderService {
         sellerId,
         storeId,
         deletedAt: null,
-        ...(query.search ? { orderNumber: { contains: query.search, mode: 'insensitive' } } : {}),
+        ...(query.search
+          ? { orderNumber: { contains: query.search, mode: 'insensitive' } }
+          : {}),
       },
       skip: (query.page - 1) * query.pageSize,
       take: query.pageSize,
@@ -67,11 +69,18 @@ export class OrderService {
   async updateStatus(id: string, payload: UpdateOrderStatusDto) {
     const scope = this.tenantRepository.scope();
     const order = await this.prisma.order.findFirstOrThrow({
-      where: { id, sellerId: scope.sellerId, storeId: scope.storeId, deletedAt: null },
+      where: {
+        id,
+        sellerId: scope.sellerId,
+        storeId: scope.storeId,
+        deletedAt: null,
+      },
     });
 
     if (!validTransitions[order.status].includes(payload.status)) {
-      throw new BadRequestException(`Invalid order transition ${order.status} -> ${payload.status}`);
+      throw new BadRequestException(
+        `Invalid order transition ${order.status} -> ${payload.status}`,
+      );
     }
 
     const updated = await this.prisma.order.update({

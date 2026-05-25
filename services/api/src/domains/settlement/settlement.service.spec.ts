@@ -21,13 +21,24 @@ describe('SettlementService', () => {
     } as unknown as PrismaService;
 
     const tenantRepository = {
-      scope: () => ({ sellerId: 'seller_demo', storeId: 'store_wysh', correlationId: 'c1' }),
+      scope: () => ({
+        sellerId: 'seller_demo',
+        storeId: 'store_wysh',
+        correlationId: 'c1',
+      }),
     } as TenantRepository;
 
     const audit = { log: jest.fn() } as unknown as AuditService;
-    const queue = { enqueueReconciliation: jest.fn() } as unknown as QueueService;
+    const queue = {
+      enqueueReconciliation: jest.fn(),
+    } as unknown as QueueService;
 
-    const service = new SettlementService(prisma, tenantRepository, audit, queue);
+    const service = new SettlementService(
+      prisma,
+      tenantRepository,
+      audit,
+      queue,
+    );
 
     await expect(
       service.updateStatus('set_1', {

@@ -8,6 +8,12 @@ import { SellerService } from './seller.service';
 
 @Module({
   controllers: [SellerController],
-  providers: [SellerService, TenantContextService, TenantRepository, TenantInterceptor, RbacGuard],
+  providers: [
+    SellerService,
+    TenantContextService,
+    TenantRepository,
+    TenantInterceptor,
+    RbacGuard,
+  ],
 })
 export class SellerModule {}

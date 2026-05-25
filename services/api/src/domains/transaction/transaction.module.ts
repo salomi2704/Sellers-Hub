@@ -10,6 +10,12 @@ import { TransactionService } from './transaction.service';
 @Module({
   imports: [AuditModule],
   controllers: [TransactionController],
-  providers: [TransactionService, TenantContextService, TenantRepository, TenantInterceptor, RbacGuard],
+  providers: [
+    TransactionService,
+    TenantContextService,
+    TenantRepository,
+    TenantInterceptor,
+    RbacGuard,
+  ],
 })
 export class TransactionModule {}

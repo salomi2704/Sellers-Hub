@@ -15,7 +15,8 @@ async function bootstrap() {
       level: process.env.LOG_LEVEL ?? 'info',
       genReqId: (req, res) => {
         const header = req.headers['x-correlation-id'];
-        const correlationId = (Array.isArray(header) ? header[0] : header) ?? randomUUID();
+        const correlationId =
+          (Array.isArray(header) ? header[0] : header) ?? randomUUID();
         res.setHeader('x-correlation-id', correlationId);
         return correlationId;
       },

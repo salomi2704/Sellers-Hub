@@ -46,7 +46,9 @@ export class ShipmentService {
         orderId: payload.orderId,
         carrier: payload.carrier,
         awb: payload.awb,
-        timeline: [{ status: ShipmentStatus.CREATED, at: new Date().toISOString() }],
+        timeline: [
+          { status: ShipmentStatus.CREATED, at: new Date().toISOString() },
+        ],
       },
     });
   }
@@ -57,9 +59,7 @@ export class ShipmentService {
       where: { id, sellerId: scope.sellerId, storeId: scope.storeId },
     });
 
-    const timeline = Array.isArray(shipment.timeline)
-      ? shipment.timeline
-      : [];
+    const timeline = Array.isArray(shipment.timeline) ? shipment.timeline : [];
 
     const updated = await this.prisma.shipment.update({
       where: { id: shipment.id },

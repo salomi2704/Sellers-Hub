@@ -1,4 +1,8 @@
-import { BadRequestException, ConflictException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+} from '@nestjs/common';
 import { SettlementStatus, TransactionType } from '@prisma/client';
 import { AuditService } from '../../audit/audit.service';
 import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
@@ -96,7 +100,8 @@ export class SettlementService {
         data: {
           status: payload.status,
           payoutIdempotencyKey: payload.payoutIdempotencyKey,
-          settledAt: payload.status === SettlementStatus.COMPLETED ? new Date() : null,
+          settledAt:
+            payload.status === SettlementStatus.COMPLETED ? new Date() : null,
         },
       });
 
@@ -108,7 +113,8 @@ export class SettlementService {
             settlementId: settlement.id,
             type: TransactionType.PAYOUT,
             amount: settlement.amount,
-            idempotencyKey: payload.payoutIdempotencyKey ?? `payout-${settlement.id}`,
+            idempotencyKey:
+              payload.payoutIdempotencyKey ?? `payout-${settlement.id}`,
           },
         });
       }

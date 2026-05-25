@@ -10,6 +10,12 @@ import { OrderService } from './order.service';
 @Module({
   imports: [AuditModule],
   controllers: [OrderController],
-  providers: [OrderService, TenantContextService, TenantRepository, TenantInterceptor, RbacGuard],
+  providers: [
+    OrderService,
+    TenantContextService,
+    TenantRepository,
+    TenantInterceptor,
+    RbacGuard,
+  ],
 })
 export class OrderModule {}

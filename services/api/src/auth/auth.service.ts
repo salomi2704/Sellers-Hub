@@ -25,7 +25,10 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials.');
     }
 
-    const passwordMatches = await bcrypt.compare(payload.password, user.passwordHash);
+    const passwordMatches = await bcrypt.compare(
+      payload.password,
+      user.passwordHash,
+    );
     if (!passwordMatches) {
       throw new UnauthorizedException('Invalid credentials.');
     }
@@ -53,13 +56,17 @@ export class AuthService {
   }
 
   async refresh(payload: RefreshTokenDto) {
-    const decoded = await this.jwtService.verifyAsync<JwtPayload>(payload.refreshToken);
+    const decoded = await this.jwtService.verifyAsync<JwtPayload>(
+      payload.refreshToken,
+    );
 
     if (decoded.type !== 'refresh') {
       throw new UnauthorizedException('Refresh token required.');
     }
 
-    const user = await this.prisma.user.findUnique({ where: { id: decoded.sub } });
+    const user = await this.prisma.user.findUnique({
+      where: { id: decoded.sub },
+    });
     if (!user || user.deletedAt) {
       throw new UnauthorizedException('User not found.');
     }
@@ -68,7 +75,10 @@ export class AuthService {
 
     return {
       accessToken: await this.jwtService.signAsync(claims),
-      refreshToken: await this.jwtService.signAsync({ ...claims, type: 'refresh' }, { expiresIn: '7d' }),
+      refreshToken: await this.jwtService.signAsync(
+        { ...claims, type: 'refresh' },
+        { expiresIn: '7d' },
+      ),
     };
   }
 

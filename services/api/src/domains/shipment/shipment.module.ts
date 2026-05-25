@@ -10,6 +10,12 @@ import { ShipmentService } from './shipment.service';
 @Module({
   imports: [AuditModule],
   controllers: [ShipmentController],
-  providers: [ShipmentService, TenantContextService, TenantRepository, TenantInterceptor, RbacGuard],
+  providers: [
+    ShipmentService,
+    TenantContextService,
+    TenantRepository,
+    TenantInterceptor,
+    RbacGuard,
+  ],
 })
 export class ShipmentModule {}

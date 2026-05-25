@@ -1,7 +1,9 @@
 import { z } from 'zod';
 
 export const envSchema = z.object({
-  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+  NODE_ENV: z
+    .enum(['development', 'test', 'production'])
+    .default('development'),
   PORT: z.coerce.number().int().positive().default(3000),
   FRONTEND_ORIGIN: z.string().url().default('http://localhost:4173'),
   JWT_SECRET: z.string().min(32),
@@ -17,4 +19,5 @@ export const envSchema = z.object({
 
 export type Env = z.infer<typeof envSchema>;
 
-export const validateEnv = (input: Record<string, unknown>) => envSchema.parse(input);
+export const validateEnv = (input: Record<string, unknown>) =>
+  envSchema.parse(input);

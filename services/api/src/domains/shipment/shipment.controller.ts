@@ -1,4 +1,14 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards, UseInterceptors } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
@@ -32,7 +42,10 @@ export class ShipmentController {
 
   @Patch(':id/status')
   @RequirePermissions(Permission.SHIPMENTS_MANAGE)
-  updateStatus(@Param('id') id: string, @Body() payload: UpdateShipmentStatusDto) {
+  updateStatus(
+    @Param('id') id: string,
+    @Body() payload: UpdateShipmentStatusDto,
+  ) {
     return this.shipmentService.updateStatus(id, payload);
   }
 }

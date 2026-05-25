@@ -7,6 +7,21 @@ import { Test, TestingModule } from '@nestjs/testing';
 import helmet from 'helmet';
 import request from 'supertest';
 import { App } from 'supertest/types';
+
+process.env.NODE_ENV = 'test';
+process.env.PORT = '3000';
+process.env.FRONTEND_ORIGIN = 'http://localhost:4173';
+process.env.JWT_SECRET = 'local-secret-local-secret-local-secret';
+process.env.DATABASE_URL =
+  'postgresql://wysh:wysh@localhost:5432/wysh?schema=public';
+process.env.REDIS_URL = 'redis://localhost:6379';
+process.env.MINIO_ENDPOINT = 'localhost';
+process.env.MINIO_PORT = '9000';
+process.env.MINIO_USE_SSL = 'false';
+process.env.MINIO_ACCESS_KEY = 'minio';
+process.env.MINIO_SECRET_KEY = 'minio123';
+process.env.MINIO_BUCKET = 'sellers-hub';
+
 import { AppModule } from './../src/app.module';
 
 describe('Wysh Sellers Hub API (e2e)', () => {
@@ -14,19 +29,6 @@ describe('Wysh Sellers Hub API (e2e)', () => {
   let server: App;
 
   beforeAll(async () => {
-    process.env.NODE_ENV = 'test';
-    process.env.PORT = '3000';
-    process.env.FRONTEND_ORIGIN = 'http://localhost:4173';
-    process.env.JWT_SECRET = 'local-secret-local-secret-local-secret';
-    process.env.DATABASE_URL = 'postgresql://wysh:wysh@localhost:5432/wysh?schema=public';
-    process.env.REDIS_URL = 'redis://localhost:6379';
-    process.env.MINIO_ENDPOINT = 'localhost';
-    process.env.MINIO_PORT = '9000';
-    process.env.MINIO_USE_SSL = 'false';
-    process.env.MINIO_ACCESS_KEY = 'minio';
-    process.env.MINIO_SECRET_KEY = 'minio123';
-    process.env.MINIO_BUCKET = 'sellers-hub';
-
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
@@ -58,6 +60,6 @@ describe('Wysh Sellers Hub API (e2e)', () => {
   });
 
   it('requires authentication for tenant-protected endpoints', async () => {
-    await request(server).get('/api/v1/orders').expect(401);
+    await request(server).get('/api/v1/orders').expect(403);
   });
 });

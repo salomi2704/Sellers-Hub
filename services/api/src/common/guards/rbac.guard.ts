@@ -21,9 +21,7 @@ export class RbacGuard implements CanActivate {
       return true;
     }
 
-    const request = context
-      .switchToHttp()
-      .getRequest<{ user?: JwtPayload }>();
+    const request = context.switchToHttp().getRequest<{ user?: JwtPayload }>();
     const user = request.user;
 
     if (!user) {
@@ -32,7 +30,10 @@ export class RbacGuard implements CanActivate {
 
     const roleAllowed = !roles || roles.includes(user.role);
     const permissionsAllowed =
-      !permissions || permissions.every((permission) => user.permissions.includes(permission as never));
+      !permissions ||
+      permissions.every((permission) =>
+        user.permissions.includes(permission as never),
+      );
 
     return roleAllowed && permissionsAllowed;
   }

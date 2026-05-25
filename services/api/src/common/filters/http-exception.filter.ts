@@ -13,13 +13,23 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
   catch(exception: unknown, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
-    const response = ctx.getResponse<{ status: (code: number) => { json: (body: unknown) => void } }>();
-    const request = ctx.getRequest<{ url: string; method: string; correlationId?: string }>();
+    const response = ctx.getResponse<{
+      status: (code: number) => { json: (body: unknown) => void };
+    }>();
+    const request = ctx.getRequest<{
+      url: string;
+      method: string;
+      correlationId?: string;
+    }>();
 
-    const status = exception instanceof HttpException ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
-    const message = exception instanceof HttpException
-      ? exception.getResponse()
-      : 'Internal server error';
+    const status =
+      exception instanceof HttpException
+        ? exception.getStatus()
+        : HttpStatus.INTERNAL_SERVER_ERROR;
+    const message =
+      exception instanceof HttpException
+        ? exception.getResponse()
+        : 'Internal server error';
 
     this.logger.error({
       err: exception,

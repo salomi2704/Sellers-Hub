@@ -8,6 +8,12 @@ import { UserService } from './user.service';
 
 @Module({
   controllers: [UserController],
-  providers: [UserService, TenantContextService, TenantRepository, TenantInterceptor, RbacGuard],
+  providers: [
+    UserService,
+    TenantContextService,
+    TenantRepository,
+    TenantInterceptor,
+    RbacGuard,
+  ],
 })
 export class UserModule {}

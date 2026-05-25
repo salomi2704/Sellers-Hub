@@ -24,7 +24,10 @@ export class TenantInterceptor implements NestInterceptor {
 
     const sellerId = this.first(request.headers['x-seller-id']);
     const storeId = this.first(request.headers['x-store-id']);
-    const correlationId = request.correlationId ?? this.first(request.headers['x-correlation-id']) ?? randomUUID();
+    const correlationId =
+      request.correlationId ??
+      this.first(request.headers['x-correlation-id']) ??
+      randomUUID();
 
     if (request.user?.sellerId && request.user?.storeId) {
       if (

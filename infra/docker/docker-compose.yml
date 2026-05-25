@@ -1,22 +1,15 @@
-version: '3.9'
 services:
   frontend:
     build: ../../apps/frontend
-    command: npm run dev -- --host 0.0.0.0 --port 4173
-    working_dir: /workspace/apps/frontend
-    volumes:
-      - ../../:/workspace
     ports:
       - '4173:4173'
     depends_on:
-      - api
+      api:
+        condition: service_started
 
   api:
     build: ../../services/api
-    command: sh -c "npm run prisma:migrate && npm run start:dev"
-    working_dir: /workspace/services/api
-    volumes:
-      - ../../:/workspace
+    command: sh -c "until nc -z postgres 5432; do sleep 1; done; npm run prisma:migrate && npm run prisma:seed && npm run start:prod"
     environment:
       PORT: 3000
       JWT_SECRET: local-secret-local-secret-local-secret
@@ -32,9 +25,12 @@ services:
     ports:
       - '3000:3000'
     depends_on:
-      - postgres
-      - redis
-      - minio
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_started
 
   postgres:
     image: postgres:17-alpine
