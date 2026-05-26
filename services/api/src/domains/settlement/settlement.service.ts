@@ -3,8 +3,14 @@ import {
   ConflictException,
   Injectable,
 } from '@nestjs/common';
-import { Prisma, SettlementStatus, TransactionType } from '@prisma/client';
+import {
+  Prisma,
+  SettlementStatus,
+  TransactionType,
+  WebhookEventType,
+} from '@prisma/client';
 import { AuditService } from '../../audit/audit.service';
+import { WebhookService } from '../../async-ops/webhook/webhook.service';
 import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { QueueService } from '../../infrastructure/queue/queue.service';
@@ -26,6 +32,7 @@ export class SettlementService {
     private readonly tenantRepository: TenantRepository,
     private readonly audit: AuditService,
     private readonly queue: QueueService,
+    private readonly webhookService: WebhookService,
   ) {}
 
   list(query: PaginationQueryDto) {
@@ -51,7 +58,13 @@ export class SettlementService {
       },
     });
 
-    await this.queue.enqueueReconciliation({ settlementId: settlement.id });
+    await this.queue.enqueueReconciliation({
+      sellerId: scope.sellerId,
+      storeId: scope.storeId,
+      runKey: `settlement-${settlement.id}`,
+      correlationId: scope.correlationId,
+      source: 'settlement',
+    });
 
     await this.audit.log({
       sellerId: scope.sellerId,
@@ -133,6 +146,38 @@ export class SettlementService {
           },
           tx,
         );
+
+        if (payload.status === SettlementStatus.COMPLETED) {
+          await this.webhookService.emitEvent({
+            sellerId: scope.sellerId,
+            storeId: scope.storeId,
+            eventType: WebhookEventType.SETTLEMENT_COMPLETED,
+            eventKey: `settlement.completed:${updated.id}`,
+            entityId: updated.id,
+            correlationId: scope.correlationId,
+            payload: {
+              settlementId: updated.id,
+              amount: updated.amount,
+              status: updated.status,
+            },
+          });
+        }
+
+        if (payload.status === SettlementStatus.FAILED) {
+          await this.webhookService.emitEvent({
+            sellerId: scope.sellerId,
+            storeId: scope.storeId,
+            eventType: WebhookEventType.PAYOUT_FAILED,
+            eventKey: `payout.failed:${updated.id}`,
+            entityId: updated.id,
+            correlationId: scope.correlationId,
+            payload: {
+              settlementId: updated.id,
+              amount: updated.amount,
+              status: updated.status,
+            },
+          });
+        }
 
         return updated;
       });

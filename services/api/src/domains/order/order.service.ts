@@ -3,8 +3,9 @@ import {
   ConflictException,
   Injectable,
 } from '@nestjs/common';
-import { OrderStatus } from '@prisma/client';
+import { OrderStatus, WebhookEventType } from '@prisma/client';
 import { AuditService } from '../../audit/audit.service';
+import { WebhookService } from '../../async-ops/webhook/webhook.service';
 import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { TenantRepository } from '../../common/tenant-repository';
@@ -25,6 +26,7 @@ export class OrderService {
     private readonly prisma: PrismaService,
     private readonly tenantRepository: TenantRepository,
     private readonly audit: AuditService,
+    private readonly webhookService: WebhookService,
   ) {}
 
   list(query: PaginationQueryDto) {
@@ -65,6 +67,16 @@ export class OrderService {
       action: 'order.create',
       correlationId: scope.correlationId,
       metadata: { orderNumber: payload.orderNumber },
+    });
+
+    await this.webhookService.emitEvent({
+      sellerId: scope.sellerId,
+      storeId: scope.storeId,
+      eventType: WebhookEventType.ORDER_CREATED,
+      eventKey: `order.created:${order.id}`,
+      entityId: order.id,
+      correlationId: scope.correlationId,
+      payload: { orderId: order.id, orderNumber: order.orderNumber, status: order.status },
     });
 
     return order;
@@ -123,6 +135,16 @@ export class OrderService {
         },
         tx,
       );
+
+      await this.webhookService.emitEvent({
+        sellerId: scope.sellerId,
+        storeId: scope.storeId,
+        eventType: WebhookEventType.ORDER_UPDATED,
+        eventKey: `order.updated:${updated.id}:${updated.status}`,
+        entityId: updated.id,
+        correlationId: scope.correlationId,
+        payload: { orderId: updated.id, status: updated.status, version: updated.version },
+      });
 
       return updated;
     });

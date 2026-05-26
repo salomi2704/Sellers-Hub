@@ -1,10 +1,11 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { Client } from 'minio';
+import { Readable } from 'node:stream';
 
 @Injectable()
 export class MinioService implements OnModuleInit {
-  private client!: Client;
-  private bucket!: string;
+  private client?: Client;
+  private bucket = process.env.MINIO_BUCKET ?? 'sellers-hub';
 
   async onModuleInit(): Promise<void> {
     if (process.env.NODE_ENV === 'test') {
@@ -26,7 +27,64 @@ export class MinioService implements OnModuleInit {
   }
 
   async readinessCheck(): Promise<'ok'> {
+    if (!this.client) {
+      return 'ok';
+    }
     await this.client.bucketExists(this.bucket);
     return 'ok';
+  }
+
+  async uploadObject(
+    objectKey: string,
+    payload: Buffer,
+    contentType: string,
+  ): Promise<void> {
+    const client = this.ensureClient();
+    await client.putObject(this.bucket, objectKey, payload, payload.byteLength, {
+      'Content-Type': contentType,
+      'Cache-Control': 'private, max-age=300',
+    });
+  }
+
+  async downloadObject(objectKey: string): Promise<Buffer> {
+    const client = this.ensureClient();
+    const stream = await client.getObject(this.bucket, objectKey);
+    return this.readAll(stream);
+  }
+
+  async uploadStream(
+    objectKey: string,
+    stream: Readable,
+    size: number,
+    contentType: string,
+  ): Promise<void> {
+    const client = this.ensureClient();
+    await client.putObject(this.bucket, objectKey, stream, size, {
+      'Content-Type': contentType,
+      'Cache-Control': 'private, max-age=300',
+    });
+  }
+
+  async createSignedDownloadUrl(
+    objectKey: string,
+    expirySeconds: number,
+  ): Promise<string> {
+    const client = this.ensureClient();
+    return client.presignedGetObject(this.bucket, objectKey, expirySeconds);
+  }
+
+  private ensureClient(): Client {
+    if (!this.client) {
+      throw new Error('MinIO client is not initialized.');
+    }
+    return this.client;
+  }
+
+  private async readAll(stream: Readable): Promise<Buffer> {
+    const chunks: Buffer[] = [];
+    for await (const chunk of stream) {
+      chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+    }
+    return Buffer.concat(chunks);
   }
 }

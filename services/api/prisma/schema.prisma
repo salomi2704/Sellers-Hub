@@ -47,6 +47,36 @@ enum SettlementStatus {
   FAILED
 }
 
+enum WebhookEventType {
+  ORDER_CREATED
+  ORDER_UPDATED
+  SHIPMENT_UPDATED
+  SETTLEMENT_COMPLETED
+  PAYOUT_FAILED
+}
+
+enum WebhookDeliveryStatus {
+  PENDING
+  DELIVERED
+  FAILED
+  DEAD_LETTER
+}
+
+enum AnalyticsEventType {
+  PRODUCT_VIEW
+  ADD_TO_CART
+  AFFILIATE_CLICK
+  REDIRECT
+  SEARCH
+}
+
+enum MediaJobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
 model Seller {
   id        String    @id @default(uuid()) @db.Uuid
   name      String
@@ -63,6 +93,11 @@ model Seller {
   transactions Transaction[]
   settlements Settlement[]
   auditLogs   AuditLog[]
+  webhookEndpoints WebhookEndpoint[]
+  webhookEvents WebhookEvent[]
+  reconciliationReports ReconciliationReport[]
+  analyticsEvents AnalyticsEvent[]
+  mediaJobs MediaJob[]
 }
 
 model Store {
@@ -83,6 +118,11 @@ model Store {
   transactions Transaction[]
   settlements Settlement[]
   auditLogs   AuditLog[]
+  webhookEndpoints WebhookEndpoint[]
+  webhookEvents WebhookEvent[]
+  reconciliationReports ReconciliationReport[]
+  analyticsEvents AnalyticsEvent[]
+  mediaJobs MediaJob[]
 
   @@unique([sellerId, slug])
   @@index([sellerId, deletedAt])
@@ -242,4 +282,106 @@ model AuditLog {
 
   @@index([sellerId, storeId, entityType, entityId])
   @@index([createdAt])
+}
+
+model WebhookEndpoint {
+  id        String   @id @default(uuid()) @db.Uuid
+  sellerId  String   @db.Uuid
+  storeId   String   @db.Uuid
+  url       String
+  secret    String
+  events    WebhookEventType[]
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  seller    Seller   @relation(fields: [sellerId], references: [id])
+  store     Store    @relation(fields: [storeId], references: [id])
+  deliveries WebhookDelivery[]
+
+  @@index([sellerId, storeId, isActive])
+}
+
+model WebhookEvent {
+  id            String           @id @default(uuid()) @db.Uuid
+  sellerId      String           @db.Uuid
+  storeId       String           @db.Uuid
+  eventType     WebhookEventType
+  entityId      String
+  eventKey      String
+  correlationId String
+  payload       Json
+  createdAt     DateTime         @default(now())
+  seller        Seller           @relation(fields: [sellerId], references: [id])
+  store         Store            @relation(fields: [storeId], references: [id])
+  deliveries    WebhookDelivery[]
+
+  @@unique([sellerId, storeId, eventKey])
+  @@index([sellerId, storeId, eventType, createdAt])
+}
+
+model WebhookDelivery {
+  id             String                @id @default(uuid()) @db.Uuid
+  eventId        String                @db.Uuid
+  endpointId     String                @db.Uuid
+  status         WebhookDeliveryStatus @default(PENDING)
+  attempts       Int                   @default(0)
+  lastAttemptAt  DateTime?
+  responseStatus Int?
+  error          String?
+  idempotencyKey String
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+  event          WebhookEvent          @relation(fields: [eventId], references: [id])
+  endpoint       WebhookEndpoint       @relation(fields: [endpointId], references: [id])
+
+  @@unique([eventId, endpointId])
+  @@unique([idempotencyKey])
+  @@index([status, updatedAt])
+}
+
+model ReconciliationReport {
+  id               String   @id @default(uuid()) @db.Uuid
+  sellerId         String   @db.Uuid
+  storeId          String   @db.Uuid
+  runKey           String
+  discrepancyCount Int
+  summary          Json
+  createdAt        DateTime @default(now())
+  seller           Seller   @relation(fields: [sellerId], references: [id])
+  store            Store    @relation(fields: [storeId], references: [id])
+
+  @@unique([sellerId, storeId, runKey])
+  @@index([sellerId, storeId, createdAt])
+}
+
+model AnalyticsEvent {
+  id             String             @id @default(uuid()) @db.Uuid
+  sellerId       String             @db.Uuid
+  storeId        String             @db.Uuid
+  eventType      AnalyticsEventType
+  idempotencyKey String
+  metadata       Json?
+  createdAt      DateTime           @default(now())
+  seller         Seller             @relation(fields: [sellerId], references: [id])
+  store          Store              @relation(fields: [storeId], references: [id])
+
+  @@unique([sellerId, storeId, idempotencyKey])
+  @@index([sellerId, storeId, eventType, createdAt])
+}
+
+model MediaJob {
+  id                String       @id @default(uuid()) @db.Uuid
+  sellerId          String       @db.Uuid
+  storeId           String       @db.Uuid
+  sourceObjectKey   String
+  destinationPrefix String
+  status            MediaJobStatus @default(PENDING)
+  attempts          Int          @default(0)
+  error             String?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  seller            Seller       @relation(fields: [sellerId], references: [id])
+  store             Store        @relation(fields: [storeId], references: [id])
+
+  @@index([sellerId, storeId, status, createdAt])
 }

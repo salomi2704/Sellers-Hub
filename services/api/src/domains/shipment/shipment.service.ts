@@ -3,8 +3,9 @@ import {
   ConflictException,
   Injectable,
 } from '@nestjs/common';
-import { ShipmentStatus } from '@prisma/client';
+import { ShipmentStatus, WebhookEventType } from '@prisma/client';
 import { AuditService } from '../../audit/audit.service';
+import { WebhookService } from '../../async-ops/webhook/webhook.service';
 import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { TenantRepository } from '../../common/tenant-repository';
@@ -26,6 +27,7 @@ export class ShipmentService {
     private readonly prisma: PrismaService,
     private readonly tenantRepository: TenantRepository,
     private readonly audit: AuditService,
+    private readonly webhookService: WebhookService,
   ) {}
 
   list(query: PaginationQueryDto) {
@@ -116,6 +118,20 @@ export class ShipmentService {
       action: 'shipment.status.update',
       correlationId: scope.correlationId,
       metadata: { status: payload.status },
+    });
+
+    await this.webhookService.emitEvent({
+      sellerId: scope.sellerId,
+      storeId: scope.storeId,
+      eventType: WebhookEventType.SHIPMENT_UPDATED,
+      eventKey: `shipment.updated:${updated.id}:${updated.status}`,
+      entityId: updated.id,
+      correlationId: scope.correlationId,
+      payload: {
+        shipmentId: updated.id,
+        orderId: updated.orderId,
+        status: updated.status,
+      },
     });
 
     return updated;

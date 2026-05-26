@@ -1,6 +1,7 @@
 import { ConflictException } from '@nestjs/common';
 import { SettlementStatus } from '@prisma/client';
 import { AuditService } from '../../audit/audit.service';
+import { WebhookService } from '../../async-ops/webhook/webhook.service';
 import { TenantRepository } from '../../common/tenant-repository';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { QueueService } from '../../infrastructure/queue/queue.service';
@@ -32,12 +33,14 @@ describe('SettlementService', () => {
     const queue = {
       enqueueReconciliation: jest.fn(),
     } as unknown as QueueService;
+    const webhook = { emitEvent: jest.fn() } as unknown as WebhookService;
 
     const service = new SettlementService(
       prisma,
       tenantRepository,
       audit,
       queue,
+      webhook,
     );
 
     await expect(

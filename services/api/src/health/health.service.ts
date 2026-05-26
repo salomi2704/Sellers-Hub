@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { collectDefaultMetrics, register } from 'prom-client';
+import { QueueWorkersService } from '../async-ops/queue-workers.service';
 import { PrismaService } from '../infrastructure/prisma/prisma.service';
 import { QueueService } from '../infrastructure/queue/queue.service';
 import { RedisService } from '../infrastructure/redis/redis.service';
@@ -13,6 +14,7 @@ export class HealthService {
     private readonly prisma: PrismaService,
     private readonly redis: RedisService,
     private readonly queue: QueueService,
+    private readonly queueWorkers: QueueWorkersService,
     private readonly minio: MinioService,
   ) {
     if (!HealthService.metricsInitialized) {
@@ -29,6 +31,7 @@ export class HealthService {
     await this.prisma.$queryRaw`SELECT 1`;
     const redisPing = await this.redis.ping();
     const minio = await this.minio.readinessCheck();
+    const queueStats = await this.queue.getQueueStats();
 
     return {
       status: 'ok',
@@ -36,6 +39,8 @@ export class HealthService {
         postgres: 'ok',
         redis: redisPing === 'PONG' ? 'ok' : 'error',
         queue: this.queue.readinessCheck(),
+        workers: this.queueWorkers.readinessCheck(),
+        queueStats,
         minio,
       },
     };

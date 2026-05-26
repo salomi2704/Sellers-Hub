@@ -15,6 +15,9 @@ export const envSchema = z.object({
   MINIO_ACCESS_KEY: z.string().min(3),
   MINIO_SECRET_KEY: z.string().min(8),
   MINIO_BUCKET: z.string().min(3),
+  WEBHOOK_MAX_SIGNATURE_AGE_SECONDS: z.coerce.number().int().positive().default(300),
+  WEBHOOK_RETRY_ATTEMPTS: z.coerce.number().int().positive().default(5),
+  ANALYTICS_BATCH_SIZE: z.coerce.number().int().positive().default(100),
 });
 
 export type Env = z.infer<typeof envSchema>;

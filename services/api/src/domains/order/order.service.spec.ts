@@ -1,6 +1,7 @@
 import { BadRequestException, ConflictException } from '@nestjs/common';
 import { OrderStatus } from '@prisma/client';
 import { AuditService } from '../../audit/audit.service';
+import { WebhookService } from '../../async-ops/webhook/webhook.service';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { TenantRepository } from '../../common/tenant-repository';
 import { OrderService } from './order.service';
@@ -27,7 +28,8 @@ describe('OrderService', () => {
 
     const audit = { log: jest.fn() } as unknown as AuditService;
 
-    const service = new OrderService(prisma, tenantRepository, audit);
+    const webhook = { emitEvent: jest.fn() } as unknown as WebhookService;
+    const service = new OrderService(prisma, tenantRepository, audit, webhook);
 
     await expect(
       service.updateStatus('o1', { status: OrderStatus.SHIPPED }),
@@ -68,7 +70,8 @@ describe('OrderService', () => {
     } as TenantRepository;
 
     const audit = { log: jest.fn() } as unknown as AuditService;
-    const service = new OrderService(prisma, tenantRepository, audit);
+    const webhook = { emitEvent: jest.fn() } as unknown as WebhookService;
+    const service = new OrderService(prisma, tenantRepository, audit, webhook);
 
     await expect(
       service.updateStatus('o1', { status: OrderStatus.CONFIRMED }),

@@ -4,6 +4,7 @@ import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { AsyncOpsModule } from './async-ops/async-ops.module';
 import { AuthModule } from './auth/auth.module';
 import { AuditModule } from './audit/audit.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
@@ -47,6 +48,7 @@ import { HealthModule } from './health/health.module';
     PrismaModule,
     RedisModule,
     QueueModule,
+    AsyncOpsModule,
     MinioModule,
     AuditModule,
     HealthModule,
