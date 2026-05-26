@@ -3,6 +3,8 @@ import {
   ValidationPipe,
   VersioningType,
 } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { Test, TestingModule } from '@nestjs/testing';
 import helmet from 'helmet';
 import request from 'supertest';
@@ -27,6 +29,7 @@ import { AppModule } from './../src/app.module';
 describe('Wysh Sellers Hub API (e2e)', () => {
   let app: INestApplication;
   let server: App;
+  let jwtService: JwtService;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -44,8 +47,19 @@ describe('Wysh Sellers Hub API (e2e)', () => {
         forbidNonWhitelisted: true,
       }),
     );
+
+    const config = new DocumentBuilder()
+      .setTitle('Wysh Sellers Hub API')
+      .setDescription('Production-grade multi-tenant commerce operations API')
+      .setVersion('1.0.0')
+      .addBearerAuth()
+      .build();
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api/docs', app, document);
+
     await app.init();
     server = app.getHttpServer() as App;
+    jwtService = new JwtService({ secret: process.env.JWT_SECRET });
   });
 
   afterAll(async () => {
@@ -61,5 +75,86 @@ describe('Wysh Sellers Hub API (e2e)', () => {
 
   it('requires authentication for tenant-protected endpoints', async () => {
     await request(server).get('/api/v1/orders').expect(403);
+  });
+
+  it('exposes prometheus metrics', async () => {
+    const response = await request(server)
+      .get('/api/v1/health/metrics')
+      .expect(200);
+    expect(response.header['content-type']).toContain('text/plain');
+    expect(response.text).toContain('process_cpu_user_seconds_total');
+  });
+
+  it('exposes swagger json', async () => {
+    const response = await request(server).get('/api/docs-json').expect(200);
+    expect((response.body as { openapi?: string }).openapi).toBeDefined();
+  });
+
+  it('rejects cross-tenant access attempts from authenticated users', async () => {
+    const token = jwtService.sign({
+      sub: 'u1',
+      email: 'owner@wysh.test',
+      sellerId: 'seller-a',
+      storeId: 'store-a',
+      role: 'OWNER',
+      permissions: ['orders:read'],
+      type: 'access',
+    });
+
+    await request(server)
+      .get('/api/v1/orders')
+      .set('Authorization', `Bearer ${token}`)
+      .set('x-seller-id', 'seller-b')
+      .set('x-store-id', 'store-b')
+      .expect(403);
+  });
+
+  it('rejects expired access tokens', async () => {
+    const token = jwtService.sign(
+      {
+        sub: 'u1',
+        email: 'owner@wysh.test',
+        sellerId: 'seller-a',
+        storeId: 'store-a',
+        role: 'OWNER',
+        permissions: ['orders:read'],
+        type: 'access',
+      },
+      { expiresIn: '-1s' },
+    );
+
+    await request(server)
+      .get('/api/v1/orders')
+      .set('Authorization', `Bearer ${token}`)
+      .set('x-seller-id', 'seller-a')
+      .set('x-store-id', 'store-a')
+      .expect(403);
+  });
+
+  it('returns forbidden for actions without required permissions', async () => {
+    const token = jwtService.sign({
+      sub: 'u1',
+      email: 'owner@wysh.test',
+      sellerId: 'seller-a',
+      storeId: 'store-a',
+      role: 'MANAGER',
+      permissions: ['orders:read'],
+      type: 'access',
+    });
+
+    await request(server)
+      .post('/api/v1/orders')
+      .set('Authorization', `Bearer ${token}`)
+      .set('x-seller-id', 'seller-a')
+      .set('x-store-id', 'store-a')
+      .send({ orderNumber: 'ORD-1', totalAmount: 1000 })
+      .expect(403);
+  });
+
+  it('rejects invalid dto payloads', async () => {
+    await request(server)
+      .post('/api/v1/auth/login')
+      .send({ email: 'invalid-email', password: '' })
+      .expect(400);
   });
 });

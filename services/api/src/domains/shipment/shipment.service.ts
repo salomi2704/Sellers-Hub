@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+} from '@nestjs/common';
 import { ShipmentStatus } from '@prisma/client';
 import { AuditService } from '../../audit/audit.service';
 import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
@@ -6,6 +10,15 @@ import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { TenantRepository } from '../../common/tenant-repository';
 import { CreateShipmentDto } from './dto/create-shipment.dto';
 import { UpdateShipmentStatusDto } from './dto/update-shipment-status.dto';
+
+const shipmentTransitions: Record<ShipmentStatus, ShipmentStatus[]> = {
+  CREATED: [ShipmentStatus.READY_FOR_PICKUP, ShipmentStatus.EXCEPTION],
+  READY_FOR_PICKUP: [ShipmentStatus.IN_TRANSIT, ShipmentStatus.EXCEPTION],
+  IN_TRANSIT: [ShipmentStatus.OUT_FOR_DELIVERY, ShipmentStatus.EXCEPTION],
+  OUT_FOR_DELIVERY: [ShipmentStatus.DELIVERED, ShipmentStatus.EXCEPTION],
+  DELIVERED: [],
+  EXCEPTION: [ShipmentStatus.READY_FOR_PICKUP, ShipmentStatus.IN_TRANSIT],
+};
 
 @Injectable()
 export class ShipmentService {
@@ -59,17 +72,39 @@ export class ShipmentService {
       where: { id, sellerId: scope.sellerId, storeId: scope.storeId },
     });
 
+    if (!shipmentTransitions[shipment.status].includes(payload.status)) {
+      throw new BadRequestException(
+        `Invalid shipment transition ${shipment.status} -> ${payload.status}`,
+      );
+    }
+
     const timeline = Array.isArray(shipment.timeline) ? shipment.timeline : [];
 
-    const updated = await this.prisma.shipment.update({
-      where: { id: shipment.id },
+    const timelineEntry = {
+      status: payload.status,
+      at: new Date().toISOString(),
+    };
+    const update = await this.prisma.shipment.updateMany({
+      where: {
+        id: shipment.id,
+        sellerId: scope.sellerId,
+        storeId: scope.storeId,
+        status: shipment.status,
+      },
       data: {
         status: payload.status,
-        timeline: [
-          ...(timeline as object[]),
-          { status: payload.status, at: new Date().toISOString() },
-        ],
+        timeline: [...(timeline as object[]), timelineEntry],
       },
+    });
+
+    if (update.count !== 1) {
+      throw new ConflictException(
+        'Shipment was updated concurrently. Please retry the request.',
+      );
+    }
+
+    const updated = await this.prisma.shipment.findUniqueOrThrow({
+      where: { id: shipment.id },
     });
 
     await this.audit.log({

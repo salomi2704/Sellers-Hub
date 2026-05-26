@@ -1,4 +1,5 @@
 import { ConflictException, Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { AuditService } from '../../audit/audit.service';
 import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
@@ -25,41 +26,43 @@ export class TransactionService {
 
   async create(payload: CreateTransactionDto) {
     const scope = this.tenantRepository.scope();
+    try {
+      return await this.prisma.$transaction(async (tx) => {
+        const entry = await tx.transaction.create({
+          data: {
+            sellerId: scope.sellerId,
+            storeId: scope.storeId,
+            orderId: payload.orderId,
+            type: payload.type,
+            amount: payload.amount,
+            idempotencyKey: payload.idempotencyKey,
+          },
+        });
 
-    const existing = await this.prisma.transaction.findFirst({
-      where: {
-        sellerId: scope.sellerId,
-        storeId: scope.storeId,
-        idempotencyKey: payload.idempotencyKey,
-      },
-    });
+        await this.audit.log(
+          {
+            sellerId: scope.sellerId,
+            storeId: scope.storeId,
+            userId: scope.userId,
+            entityType: 'Transaction',
+            entityId: entry.id,
+            action: 'transaction.create',
+            correlationId: scope.correlationId,
+            metadata: { type: payload.type, amount: payload.amount },
+          },
+          tx,
+        );
 
-    if (existing) {
-      throw new ConflictException('Duplicate idempotency key.');
+        return entry;
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new ConflictException('Duplicate idempotency key.');
+      }
+      throw error;
     }
-
-    const entry = await this.prisma.transaction.create({
-      data: {
-        sellerId: scope.sellerId,
-        storeId: scope.storeId,
-        orderId: payload.orderId,
-        type: payload.type,
-        amount: payload.amount,
-        idempotencyKey: payload.idempotencyKey,
-      },
-    });
-
-    await this.audit.log({
-      sellerId: scope.sellerId,
-      storeId: scope.storeId,
-      userId: scope.userId,
-      entityType: 'Transaction',
-      entityId: entry.id,
-      action: 'transaction.create',
-      correlationId: scope.correlationId,
-      metadata: { type: payload.type, amount: payload.amount },
-    });
-
-    return entry;
   }
 }

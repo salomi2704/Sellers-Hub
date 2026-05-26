@@ -13,7 +13,15 @@ export class QueueService implements OnModuleInit, OnModuleDestroy {
       return;
     }
     const connection = this.redisService.getClient();
-    this.reconciliationQueue = new Queue('reconciliation', { connection });
+    this.reconciliationQueue = new Queue('reconciliation', {
+      connection,
+      defaultJobOptions: {
+        attempts: 5,
+        backoff: { type: 'exponential', delay: 1_000 },
+        removeOnComplete: 100,
+        removeOnFail: 100,
+      },
+    });
   }
 
   async onModuleDestroy(): Promise<void> {
@@ -30,7 +38,15 @@ export class QueueService implements OnModuleInit, OnModuleDestroy {
     await this.reconciliationQueue.add('reconciliation.run', payload, {
       removeOnComplete: 100,
       removeOnFail: 100,
-      attempts: 3,
+      attempts: 5,
+      backoff: { type: 'exponential', delay: 1_000 },
     });
+  }
+
+  readinessCheck(): 'ok' | 'skipped' {
+    if (process.env.NODE_ENV === 'test') {
+      return 'skipped';
+    }
+    return this.reconciliationQueue ? 'ok' : 'skipped';
   }
 }

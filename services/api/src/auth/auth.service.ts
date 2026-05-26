@@ -56,9 +56,14 @@ export class AuthService {
   }
 
   async refresh(payload: RefreshTokenDto) {
-    const decoded = await this.jwtService.verifyAsync<JwtPayload>(
-      payload.refreshToken,
-    );
+    let decoded: JwtPayload;
+    try {
+      decoded = await this.jwtService.verifyAsync<JwtPayload>(
+        payload.refreshToken,
+      );
+    } catch {
+      throw new UnauthorizedException('Invalid or expired refresh token.');
+    }
 
     if (decoded.type !== 'refresh') {
       throw new UnauthorizedException('Refresh token required.');

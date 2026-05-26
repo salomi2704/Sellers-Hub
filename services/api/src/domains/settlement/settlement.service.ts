@@ -3,7 +3,7 @@ import {
   ConflictException,
   Injectable,
 } from '@nestjs/common';
-import { SettlementStatus, TransactionType } from '@prisma/client';
+import { Prisma, SettlementStatus, TransactionType } from '@prisma/client';
 import { AuditService } from '../../audit/audit.service';
 import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
@@ -94,43 +94,56 @@ export class SettlementService {
       }
     }
 
-    return this.prisma.$transaction(async (tx) => {
-      const updated = await tx.settlement.update({
-        where: { id: settlement.id },
-        data: {
-          status: payload.status,
-          payoutIdempotencyKey: payload.payoutIdempotencyKey,
-          settledAt:
-            payload.status === SettlementStatus.COMPLETED ? new Date() : null,
-        },
-      });
-
-      if (payload.status === SettlementStatus.COMPLETED) {
-        await tx.transaction.create({
+    try {
+      return this.prisma.$transaction(async (tx) => {
+        const updated = await tx.settlement.update({
+          where: { id: settlement.id },
           data: {
-            sellerId: scope.sellerId,
-            storeId: scope.storeId,
-            settlementId: settlement.id,
-            type: TransactionType.PAYOUT,
-            amount: settlement.amount,
-            idempotencyKey:
-              payload.payoutIdempotencyKey ?? `payout-${settlement.id}`,
+            status: payload.status,
+            payoutIdempotencyKey: payload.payoutIdempotencyKey,
+            settledAt:
+              payload.status === SettlementStatus.COMPLETED ? new Date() : null,
           },
         });
-      }
 
-      await this.audit.log({
-        sellerId: scope.sellerId,
-        storeId: scope.storeId,
-        userId: scope.userId,
-        entityType: 'Settlement',
-        entityId: updated.id,
-        action: 'settlement.status.update',
-        correlationId: scope.correlationId,
-        metadata: { from: settlement.status, to: payload.status },
+        if (payload.status === SettlementStatus.COMPLETED) {
+          await tx.transaction.create({
+            data: {
+              sellerId: scope.sellerId,
+              storeId: scope.storeId,
+              settlementId: settlement.id,
+              type: TransactionType.PAYOUT,
+              amount: settlement.amount,
+              idempotencyKey:
+                payload.payoutIdempotencyKey ?? `payout-${settlement.id}`,
+            },
+          });
+        }
+
+        await this.audit.log(
+          {
+            sellerId: scope.sellerId,
+            storeId: scope.storeId,
+            userId: scope.userId,
+            entityType: 'Settlement',
+            entityId: updated.id,
+            action: 'settlement.status.update',
+            correlationId: scope.correlationId,
+            metadata: { from: settlement.status, to: payload.status },
+          },
+          tx,
+        );
+
+        return updated;
       });
-
-      return updated;
-    });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new ConflictException('Duplicate payout idempotency key.');
+      }
+      throw error;
+    }
   }
 }
