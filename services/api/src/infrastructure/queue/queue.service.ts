@@ -34,7 +34,8 @@ export class QueueService implements OnModuleInit, OnModuleDestroy {
       return;
     }
 
-    const connection = this.redisService.getClient() as unknown as ConnectionOptions;
+    const connection =
+      this.redisService.getClient() as unknown as ConnectionOptions;
     (Object.values(QUEUE_NAMES) as QueueName[]).forEach((queueName) => {
       this.queues.set(
         queueName,
