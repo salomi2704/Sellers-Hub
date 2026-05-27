@@ -1,5 +1,5 @@
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { Job, QueueEvents, Worker } from 'bullmq';
+import { Job, QueueEvents, Worker, type ConnectionOptions } from 'bullmq';
 import pino from 'pino';
 import Redis from 'ioredis';
 import { AnalyticsService } from './analytics/analytics.service';
@@ -139,7 +139,7 @@ export class QueueWorkersService implements OnModuleInit, OnModuleDestroy {
     const connection = new Redis(redisUrl, {
       maxRetriesPerRequest: null,
       enableReadyCheck: true,
-    });
+    }) as unknown as ConnectionOptions;
     const worker = new Worker(queueName, processor, {
       connection,
       concurrency: 5,

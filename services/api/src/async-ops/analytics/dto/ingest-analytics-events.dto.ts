@@ -21,7 +21,7 @@ class AnalyticsItemDto {
   @MinLength(4)
   idempotencyKey!: string;
 
-  @ApiProperty({ required: false, type: 'object' })
+  @ApiProperty({ required: false, type: Object })
   @IsOptional()
   @IsObject()
   metadata?: Record<string, unknown>;

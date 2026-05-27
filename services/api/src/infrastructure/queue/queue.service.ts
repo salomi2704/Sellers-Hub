@@ -1,5 +1,5 @@
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { JobsOptions, Queue } from 'bullmq';
+import { JobsOptions, Queue, type ConnectionOptions } from 'bullmq';
 import { randomUUID } from 'node:crypto';
 import { RedisService } from '../redis/redis.service';
 import { QueueName, QUEUE_NAMES } from './queue.constants';
@@ -34,7 +34,7 @@ export class QueueService implements OnModuleInit, OnModuleDestroy {
       return;
     }
 
-    const connection = this.redisService.getClient();
+    const connection = this.redisService.getClient() as unknown as ConnectionOptions;
     (Object.values(QUEUE_NAMES) as QueueName[]).forEach((queueName) => {
       this.queues.set(
         queueName,
