@@ -73,7 +73,7 @@ export class ReconciliationService {
         storeId: payload.storeId,
         runKey: payload.runKey,
         discrepancyCount,
-        summary: summary as Prisma.InputJsonValue,
+        summary: summary,
       },
     });
 

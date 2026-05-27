@@ -40,10 +40,16 @@ export class MinioService implements OnModuleInit {
     contentType: string,
   ): Promise<void> {
     const client = this.ensureClient();
-    await client.putObject(this.bucket, objectKey, payload, payload.byteLength, {
-      'Content-Type': contentType,
-      'Cache-Control': 'private, max-age=300',
-    });
+    await client.putObject(
+      this.bucket,
+      objectKey,
+      payload,
+      payload.byteLength,
+      {
+        'Content-Type': contentType,
+        'Cache-Control': 'private, max-age=300',
+      },
+    );
   }
 
   async downloadObject(objectKey: string): Promise<Buffer> {

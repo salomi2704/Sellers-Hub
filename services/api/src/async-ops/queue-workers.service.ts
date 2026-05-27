@@ -6,7 +6,10 @@ import { AnalyticsService } from './analytics/analytics.service';
 import { MediaService } from './media/media.service';
 import { ReconciliationService } from './reconciliation/reconciliation.service';
 import { WebhookService } from './webhook/webhook.service';
-import { QUEUE_NAMES, QueueName } from '../infrastructure/queue/queue.constants';
+import {
+  QUEUE_NAMES,
+  QueueName,
+} from '../infrastructure/queue/queue.constants';
 import {
   AnalyticsIngestionJobPayload,
   EmitWebhookEventPayload,
@@ -43,19 +46,27 @@ export class QueueWorkersService implements OnModuleInit, OnModuleDestroy {
 
     this.createWorker(QUEUE_NAMES.WEBHOOK_DELIVERY, async (job) => {
       if (job.name === 'webhook.event.fanout') {
-        await this.webhookService.emitEvent(job.data as EmitWebhookEventPayload);
+        await this.webhookService.emitEvent(
+          job.data as EmitWebhookEventPayload,
+        );
         return;
       }
 
       const payload = job.data as WebhookDeliveryJobPayload;
       try {
-        await this.webhookService.processDelivery(payload.deliveryId, payload.correlationId);
+        await this.webhookService.processDelivery(
+          payload.deliveryId,
+          payload.correlationId,
+        );
       } catch (error) {
         if (job.attemptsMade + 1 >= (job.opts.attempts ?? 1)) {
           await this.queueService.enqueueWebhookDeadLetter({
             deliveryId: payload.deliveryId,
             correlationId: payload.correlationId,
-            reason: error instanceof Error ? error.message : 'unknown webhook failure',
+            reason:
+              error instanceof Error
+                ? error.message
+                : 'unknown webhook failure',
           });
         }
         throw error;
@@ -64,7 +75,10 @@ export class QueueWorkersService implements OnModuleInit, OnModuleDestroy {
 
     this.createWorker(QUEUE_NAMES.WEBHOOK_DEAD_LETTER, async (job) => {
       const payload = job.data as WebhookDeadLetterPayload;
-      await this.webhookService.markDeadLetter(payload.deliveryId, payload.reason);
+      await this.webhookService.markDeadLetter(
+        payload.deliveryId,
+        payload.reason,
+      );
       this.logger.error({
         queue: QUEUE_NAMES.WEBHOOK_DEAD_LETTER,
         correlationId: payload.correlationId,
@@ -90,7 +104,9 @@ export class QueueWorkersService implements OnModuleInit, OnModuleDestroy {
       } catch (error) {
         await this.mediaService.markFailed(
           payload.mediaJobId,
-          error instanceof Error ? error.message : 'unknown media processing error',
+          error instanceof Error
+            ? error.message
+            : 'unknown media processing error',
         );
         throw error;
       }
@@ -106,7 +122,9 @@ export class QueueWorkersService implements OnModuleInit, OnModuleDestroy {
     if (process.env.NODE_ENV === 'test') {
       return 'skipped';
     }
-    const allUp = Object.values(this.workerHealth).every((status) => status === 'up');
+    const allUp = Object.values(this.workerHealth).every(
+      (status) => status === 'up',
+    );
     return {
       status: allUp ? 'ok' : 'degraded',
       workers: this.workerHealth,

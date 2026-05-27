@@ -1,6 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { AnalyticsEventType } from '@prisma/client';
-import { IsArray, IsEnum, IsObject, IsOptional, IsString, MinLength, ValidateNested } from 'class-validator';
+import {
+  IsArray,
+  IsEnum,
+  IsObject,
+  IsOptional,
+  IsString,
+  MinLength,
+  ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 class AnalyticsItemDto {

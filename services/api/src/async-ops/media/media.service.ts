@@ -53,13 +53,19 @@ export class MediaService {
       data: { status: MediaJobStatus.PROCESSING, attempts: { increment: 1 } },
     });
 
-    const sourceBuffer = await this.minio.downloadObject(mediaJob.sourceObjectKey);
+    const sourceBuffer = await this.minio.downloadObject(
+      mediaJob.sourceObjectKey,
+    );
     const thumbnail = await sharp(sourceBuffer)
       .resize({ width: 240, withoutEnlargement: true })
       .jpeg({ quality: 75 })
       .toBuffer();
-    const compressed = await sharp(sourceBuffer).jpeg({ quality: 80 }).toBuffer();
-    const optimized = await sharp(sourceBuffer).webp({ quality: 82 }).toBuffer();
+    const compressed = await sharp(sourceBuffer)
+      .jpeg({ quality: 80 })
+      .toBuffer();
+    const optimized = await sharp(sourceBuffer)
+      .webp({ quality: 82 })
+      .toBuffer();
 
     await Promise.all([
       this.minio.uploadObject(

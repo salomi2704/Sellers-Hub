@@ -3,14 +3,21 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma, WebhookDeliveryStatus, WebhookEventType } from '@prisma/client';
+import {
+  Prisma,
+  WebhookDeliveryStatus,
+  WebhookEventType,
+} from '@prisma/client';
 import { createHmac, randomUUID } from 'node:crypto';
 import { AuditService } from '../../audit/audit.service';
 import { QueueService } from '../../infrastructure/queue/queue.service';
 import { EmitWebhookEventPayload } from '../../infrastructure/queue/queue.jobs';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { CreateWebhookEndpointDto } from './dto/create-webhook-endpoint.dto';
-import { webhookEventNameToType, webhookEventTypeToName } from './webhook-events.mapper';
+import {
+  webhookEventNameToType,
+  webhookEventTypeToName,
+} from './webhook-events.mapper';
 
 interface TenantScope {
   sellerId: string;
@@ -165,7 +172,9 @@ export class WebhookService {
           .digest('hex');
 
         const delivery = await this.prisma.webhookDelivery.upsert({
-          where: { eventId_endpointId: { eventId: event.id, endpointId: endpoint.id } },
+          where: {
+            eventId_endpointId: { eventId: event.id, endpointId: endpoint.id },
+          },
           update: {},
           create: {
             eventId: event.id,
@@ -232,7 +241,9 @@ export class WebhookService {
           error: `HTTP ${response.status}`,
         },
       });
-      throw new ConflictException(`Webhook delivery failed with status ${response.status}`);
+      throw new ConflictException(
+        `Webhook delivery failed with status ${response.status}`,
+      );
     }
 
     await this.prisma.webhookDelivery.update({
@@ -258,7 +269,9 @@ export class WebhookService {
     });
   }
 
-  mapEventNameToType(eventName: keyof typeof webhookEventNameToType): WebhookEventType {
+  mapEventNameToType(
+    eventName: keyof typeof webhookEventNameToType,
+  ): WebhookEventType {
     return webhookEventNameToType[eventName];
   }
 }

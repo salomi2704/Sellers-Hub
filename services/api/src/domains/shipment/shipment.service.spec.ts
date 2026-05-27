@@ -28,7 +28,12 @@ describe('ShipmentService', () => {
 
     const audit = { log: jest.fn() } as unknown as AuditService;
     const webhook = { emitEvent: jest.fn() } as unknown as WebhookService;
-    const service = new ShipmentService(prisma, tenantRepository, audit, webhook);
+    const service = new ShipmentService(
+      prisma,
+      tenantRepository,
+      audit,
+      webhook,
+    );
 
     await expect(
       service.updateStatus('sh_1', { status: ShipmentStatus.DELIVERED }),

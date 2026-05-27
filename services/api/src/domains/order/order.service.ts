@@ -76,7 +76,11 @@ export class OrderService {
       eventKey: `order.created:${order.id}`,
       entityId: order.id,
       correlationId: scope.correlationId,
-      payload: { orderId: order.id, orderNumber: order.orderNumber, status: order.status },
+      payload: {
+        orderId: order.id,
+        orderNumber: order.orderNumber,
+        status: order.status,
+      },
     });
 
     return order;
@@ -143,7 +147,11 @@ export class OrderService {
         eventKey: `order.updated:${updated.id}:${updated.status}`,
         entityId: updated.id,
         correlationId: scope.correlationId,
-        payload: { orderId: updated.id, status: updated.status, version: updated.version },
+        payload: {
+          orderId: updated.id,
+          status: updated.status,
+          version: updated.version,
+        },
       });
 
       return updated;

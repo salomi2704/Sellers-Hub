@@ -56,7 +56,9 @@ export class QueueService implements OnModuleInit, OnModuleDestroy {
     return this.queues.get(name);
   }
 
-  async enqueueReconciliation(payload: ReconciliationJobPayload): Promise<void> {
+  async enqueueReconciliation(
+    payload: ReconciliationJobPayload,
+  ): Promise<void> {
     const queue = this.queues.get(QUEUE_NAMES.RECONCILIATION);
     if (!queue) {
       return;

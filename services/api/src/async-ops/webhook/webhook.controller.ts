@@ -33,7 +33,10 @@ export class WebhookController {
   @Post('endpoints')
   @RequirePermissions(Permission.USERS_MANAGE)
   createEndpoint(@Body() payload: CreateWebhookEndpointDto) {
-    return this.webhookService.createEndpoint(this.tenantRepository.scope(), payload);
+    return this.webhookService.createEndpoint(
+      this.tenantRepository.scope(),
+      payload,
+    );
   }
 
   @Get('endpoints')
@@ -58,6 +61,9 @@ export class WebhookController {
   @Post('events/:eventId/replay')
   @RequirePermissions(Permission.ADMIN_READ)
   replay(@Param('eventId') eventId: string) {
-    return this.webhookService.replayEvent(this.tenantRepository.scope(), eventId);
+    return this.webhookService.replayEvent(
+      this.tenantRepository.scope(),
+      eventId,
+    );
   }
 }

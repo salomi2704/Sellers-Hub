@@ -40,10 +40,13 @@ export class AnalyticsService {
       skipDuplicates: true,
     });
 
-    const totals = payload.events.reduce<Record<string, number>>((acc, item) => {
-      acc[item.eventType] = (acc[item.eventType] ?? 0) + 1;
-      return acc;
-    }, {});
+    const totals = payload.events.reduce<Record<string, number>>(
+      (acc, item) => {
+        acc[item.eventType] = (acc[item.eventType] ?? 0) + 1;
+        return acc;
+      },
+      {},
+    );
 
     return { inserted: inserted.count, totals };
   }
