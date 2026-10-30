@@ -250,7 +250,11 @@ export class PlatformService {
       throw new NotFoundException('Product not found.');
     }
 
-    const [deletedProduct, ...remainingProducts] = existingProducts;
+    const deletedProduct = existingProducts[productIndex];
+    const remainingProducts = [
+      ...existingProducts.slice(0, productIndex),
+      ...existingProducts.slice(productIndex + 1),
+    ];
     this.products.set(key, remainingProducts);
 
     return deletedProduct;
