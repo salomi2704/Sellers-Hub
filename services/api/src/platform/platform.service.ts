@@ -104,6 +104,34 @@ export class PlatformService {
     labelNames: ['platform'],
   });
 
+  private readonly productViewCounter = new Counter({
+    name: 'wysh_product_views_total',
+    help: 'Number of product view events',
+    registers: [this.registry],
+    labelNames: ['eventType'],
+  });
+
+  private readonly addToCartCounter = new Counter({
+    name: 'wysh_add_to_cart_total',
+    help: 'Number of add-to-cart events',
+    registers: [this.registry],
+    labelNames: ['eventType'],
+  });
+
+  private readonly affiliateClickCounter = new Counter({
+    name: 'wysh_affiliate_clicks_total',
+    help: 'Number of affiliate click events',
+    registers: [this.registry],
+    labelNames: ['eventType'],
+  });
+
+  private readonly searchCounter = new Counter({
+    name: 'wysh_searches_total',
+    help: 'Number of search events',
+    registers: [this.registry],
+    labelNames: ['eventType'],
+  });
+
   getLiveness() {
     return { status: 'ok', service: 'wysh-sellers-api' };
   }
@@ -410,6 +438,25 @@ export class PlatformService {
     }
 
     this.analyticsCounter.inc({ eventType: payload.eventType });
+
+    // Increment event-specific counters
+    switch (payload.eventType) {
+      case 'product_view':
+        this.productViewCounter.inc({ eventType: payload.eventType });
+        break;
+      case 'add_to_cart':
+        this.addToCartCounter.inc({ eventType: payload.eventType });
+        break;
+      case 'affiliate_click':
+        this.affiliateClickCounter.inc({ eventType: payload.eventType });
+        break;
+      case 'search':
+        this.searchCounter.inc({ eventType: payload.eventType });
+        break;
+      case 'redirect':
+        this.redirectCounter.inc({ platform: payload.entityId || 'unknown' });
+        break;
+    }
 
     return {
       accepted: true,
