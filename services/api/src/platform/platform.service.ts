@@ -7,6 +7,7 @@ import { Registry, Counter } from 'prom-client';
 import { AnalyticsEventDto } from './dto/analytics-event.dto';
 import { DiscoveryRequestDto } from './dto/discovery-request.dto';
 import { PaginationQueryDto } from './dto/pagination-query.dto';
+import { CreateProductDto, UpdateProductDto } from './dto/create-product.dto';
 
 const tenantKey = (sellerId: string, storeId: string) =>
   `${sellerId}:${storeId}`;
@@ -138,6 +139,71 @@ export class PlatformService {
       page: query.page,
       pageSize: query.pageSize,
     };
+  }
+
+  createProduct(sellerId: string, storeId: string, dto: CreateProductDto) {
+    const key = tenantKey(sellerId, storeId);
+    const existingProducts = this.products.get(key) ?? [];
+
+    const newProduct = {
+      id: `p-${Date.now()}`,
+      title: dto.title,
+      sku: dto.sku,
+      brand: dto.brand,
+      status: dto.status,
+      price: dto.price,
+      inventory: dto.inventory,
+      imageUrl: dto.imageUrl,
+    };
+
+    const updatedProducts = [...existingProducts, newProduct];
+    this.products.set(key, updatedProducts);
+
+    return newProduct;
+  }
+
+  updateProduct(
+    sellerId: string,
+    storeId: string,
+    productId: string,
+    dto: UpdateProductDto,
+  ) {
+    const key = tenantKey(sellerId, storeId);
+    const existingProducts = this.products.get(key) ?? [];
+
+    const productIndex = existingProducts.findIndex((p) => p.id === productId);
+
+    if (productIndex === -1) {
+      throw new NotFoundException('Product not found.');
+    }
+
+    const updatedProduct = {
+      ...existingProducts[productIndex],
+      ...dto,
+      id: existingProducts[productIndex].id,
+    };
+
+    const updatedProducts = [...existingProducts];
+    updatedProducts[productIndex] = updatedProduct;
+    this.products.set(key, updatedProducts);
+
+    return updatedProduct;
+  }
+
+  deleteProduct(sellerId: string, storeId: string, productId: string) {
+    const key = tenantKey(sellerId, storeId);
+    const existingProducts = this.products.get(key) ?? [];
+
+    const productIndex = existingProducts.findIndex((p) => p.id === productId);
+
+    if (productIndex === -1) {
+      throw new NotFoundException('Product not found.');
+    }
+
+    const [deletedProduct, ...remainingProducts] = existingProducts;
+    this.products.set(key, remainingProducts);
+
+    return deletedProduct;
   }
 
   ingestAnalytics(
