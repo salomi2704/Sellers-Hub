@@ -1,5 +1,59 @@
 apiVersion: v2
 name: wysh-sellers
-version: 0.1.0
+version: 0.2.0
 appVersion: "1.0.0"
 description: Wysh Sellers Hub production deployment chart
+
+helm:
+  # Hooks for deployment validation
+  hooks:
+    preUpgrade:
+      - name: validate-chart
+        command: ["helm", "template", ".", "--output", "json | python3 -c \"import sys, json; d=json.load(sys.stdin); print('Chart validation OK')\"]
+    postUpgrade:
+      - name: run-migrations
+        command: ["kubectl", "exec", "-n", "wysh-sellers", "deploy/api", "--", "npm", "run", "typeorm:run"]
+
+annotations:
+  # Metadata
+  repository: "https://github.com/salomi2704/wysh-sellers-hub"
+  chartsync: "auto"
+
+dependencies:
+  - name: common
+    version: "1.15.0"
+    repository: "https://charts.bitnami.com/bitnami"
+
+image:
+  registry: "ghcr.io"
+  repository: "salomi2704/sellers-hub"
+  tag: "latest"
+
+ingress:
+  enabled: true
+  className: nginx
+  host: wysh.example.com
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+resources:
+  limits:
+    cpu: "500m"
+    memory: "512Mi"
+  requests:
+    cpu: "250m"
+    memory: "256Mi"
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

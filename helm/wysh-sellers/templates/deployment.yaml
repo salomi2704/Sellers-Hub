@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: {{ .Chart.Name }}-api
 spec:
-  replicas: 2
+  replicas: {{ .Values.autoscaling.minReplicas }}
   selector:
     matchLabels:
       app: {{ .Chart.Name }}-api
@@ -17,11 +17,49 @@ spec:
           image: {{ .Values.image.api }}
           ports:
             - containerPort: 3000
+          env:
+            - name: PORT
+              value: "3000"
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.name }}-secrets
+                  key: jwt-secret
+            - name: FRONTEND_ORIGIN
+              value: "http://localhost:4173"
+            - name: DATABASE_URL
+              value: "postgres://wysh:wysh@postgres:5432/wysh"
+            - name: REDIS_URL
+              value: "redis://redis:6379"
+            - name: MINIO_ENDPOINT
+              value: "http://minio:9000"
+            - name: MINIO_ROOT_USER
+              value: "minio"
+            - name: MINIO_ROOT_PASSWORD
+              value: "minio123"
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
           livenessProbe:
             httpGet:
               path: /api/v1/health/liveness
               port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
           readinessProbe:
             httpGet:
               path: /api/v1/health/readiness
               port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          startupProbe:
+            httpGet:
+              path: /api/v1/health/liveness
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 12
