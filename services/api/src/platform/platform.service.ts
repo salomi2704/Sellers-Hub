@@ -8,6 +8,11 @@ import { AnalyticsEventDto } from './dto/analytics-event.dto';
 import { DiscoveryRequestDto } from './dto/discovery-request.dto';
 import { PaginationQueryDto } from './dto/pagination-query.dto';
 import { CreateProductDto, UpdateProductDto } from './dto/create-product.dto';
+import {
+  OrderStatus,
+  CreateOrderDto,
+  UpdateOrderStatusDto,
+} from './dto/create-order.dto';
 
 const tenantKey = (sellerId: string, storeId: string) =>
   `${sellerId}:${storeId}`;
@@ -45,6 +50,19 @@ export class PlatformService {
       ],
     ],
   ]);
+
+  private readonly orders = new Map<
+    string,
+    {
+      id: string;
+      productId: string;
+      quantity: number;
+      status: OrderStatus;
+      sellerId: string;
+      storeId: string;
+      createdAt: number;
+    }[]
+  >();
 
   private readonly offers = [
     {
@@ -204,6 +222,73 @@ export class PlatformService {
     this.products.set(key, remainingProducts);
 
     return deletedProduct;
+  }
+
+  createOrder(sellerId: string, storeId: string, dto: CreateOrderDto) {
+    const key = tenantKey(sellerId, storeId);
+    const existingOrders = this.orders.get(key) ?? [];
+
+    const newOrder = {
+      id: `ord-${Date.now()}`,
+      productId: dto.productId,
+      quantity: dto.quantity,
+      status: OrderStatus.NEW,
+      sellerId,
+      storeId,
+      createdAt: Date.now(),
+    };
+
+    const updatedOrders = [...existingOrders, newOrder];
+    this.orders.set(key, updatedOrders);
+
+    return newOrder;
+  }
+
+  updateOrderStatus(
+    sellerId: string,
+    storeId: string,
+    orderId: string,
+    dto: UpdateOrderStatusDto,
+  ) {
+    const key = tenantKey(sellerId, storeId);
+    const existingOrders = this.orders.get(key) ?? [];
+
+    const order = existingOrders.find((o) => o.id === orderId);
+
+    if (!order) {
+      throw new NotFoundException('Order not found.');
+    }
+
+    // Validate state transition
+    const statusTransitions: Record<OrderStatus, OrderStatus[]> = {
+      [OrderStatus.NEW]: [OrderStatus.CONFIRMED],
+      [OrderStatus.CONFIRMED]: [OrderStatus.PACKED],
+      [OrderStatus.PACKED]: [OrderStatus.SHIPPED],
+      [OrderStatus.SHIPPED]: [OrderStatus.DELIVERED],
+      [OrderStatus.DELIVERED]: [],
+    };
+
+    const allowedNextStatuses = statusTransitions[order.status];
+    if (allowedNextStatuses && !allowedNextStatuses.includes(dto.status)) {
+      throw new ForbiddenException(
+        `Invalid state transition from ${order.status} to ${dto.status}.`,
+      );
+    }
+
+    order.status = dto.status;
+    if (dto.carrier) order.carrier = dto.carrier;
+    if (dto.trackingNumber) order.trackingNumber = dto.trackingNumber;
+
+    const updatedOrders = [...existingOrders];
+    const orderIndex = updatedOrders.findIndex((o) => o.id === orderId);
+    updatedOrders[orderIndex] = order;
+    this.orders.set(key, updatedOrders);
+
+    return order;
+  }
+
+  getOrders(sellerId: string, storeId: string) {
+    return this.orders.get(tenantKey(sellerId, storeId)) ?? [];
   }
 
   ingestAnalytics(

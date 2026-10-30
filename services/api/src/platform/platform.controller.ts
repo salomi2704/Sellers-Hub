@@ -19,6 +19,11 @@ import { AnalyticsEventDto } from './dto/analytics-event.dto';
 import { DiscoveryRequestDto } from './dto/discovery-request.dto';
 import { PaginationQueryDto } from './dto/pagination-query.dto';
 import { CreateProductDto, UpdateProductDto } from './dto/create-product.dto';
+import {
+  OrderStatus,
+  CreateOrderDto,
+  UpdateOrderStatusDto,
+} from './dto/create-order.dto';
 import { PlatformService } from './platform.service';
 
 @Controller({ path: '/', version: '1' })
@@ -112,6 +117,42 @@ export class PlatformController {
       tenant.storeId,
       productId,
     );
+  }
+
+  @Post('catalog/orders')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @RequirePermissions('orders:manage')
+  createOrder(@Body() dto: CreateOrderDto) {
+    const tenant = this.tenantContext.getTenant();
+    return this.platformService.createOrder(
+      tenant.sellerId,
+      tenant.storeId,
+      dto,
+    );
+  }
+
+  @Put('catalog/orders/:orderId/status')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @RequirePermissions('orders:manage')
+  updateOrderStatus(
+    @Param('orderId') orderId: string,
+    @Body() dto: UpdateOrderStatusDto,
+  ) {
+    const tenant = this.tenantContext.getTenant();
+    return this.platformService.updateOrderStatus(
+      tenant.sellerId,
+      tenant.storeId,
+      orderId,
+      dto,
+    );
+  }
+
+  @Get('catalog/orders')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @RequirePermissions('orders:manage')
+  getOrders(@Query() query: { sellerId?: string; storeId?: string }) {
+    const tenant = this.tenantContext.getTenant();
+    return this.platformService.getOrders(tenant.sellerId, tenant.storeId);
   }
 
   @Post('analytics/event')
