@@ -13,7 +13,7 @@ import { PlatformModule } from './platform/platform.module';
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
       global: true,
-      secret: process.env.JWT_SECRET ?? 'wysh-local-secret',
+      secret: process.env.JWT_SECRET ?? 'sellers-hub-local-secret',
       signOptions: { expiresIn: '15m' },
     }),
     ThrottlerModule.forRoot([

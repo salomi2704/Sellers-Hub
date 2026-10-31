@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: wysh-api
+  name: sellers-hub-api
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: wysh-api
+      app: sellers-hub-api
   template:
     metadata:
       labels:
-        app: wysh-api
+        app: sellers-hub-api
     spec:
       containers:
         - name: api
