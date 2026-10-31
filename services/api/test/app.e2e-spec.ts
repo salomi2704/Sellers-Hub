@@ -40,7 +40,7 @@ describe('Wysh Sellers Hub API (e2e)', () => {
   it('returns health and slug readiness information', async () => {
     await request(server).get('/api/v1/health/liveness').expect(200).expect({
       status: 'ok',
-      service: 'wysh-sellers-api',
+      service: 'sellers-hub-api',
     });
 
     await request(server)

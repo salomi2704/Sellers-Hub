@@ -1,6 +1,6 @@
-# Wysh Sellers Hub
+# Sellers Hub
 
-Wysh Sellers Hub is a production-oriented multi-tenant seller operations platform scaffold with a React 19 frontend, a NestJS 11 API, shared domain packages, worker contracts, and deployable infrastructure definitions.
+Sellers Hub is a production-oriented multi-tenant seller operations platform scaffold with a React 19 frontend, a NestJS 11 API, shared domain packages, worker contracts, and deployable infrastructure definitions.
 
 ## Repository layout
 
@@ -9,7 +9,7 @@ Wysh Sellers Hub is a production-oriented multi-tenant seller operations platfor
 - `workers/*` – async worker contracts for media, bulk upload, affiliate sync, analytics ingestion, and reconciliation
 - `packages/*` – shared configuration, domain types, utilities, and UI primitives
 - `infra/*` – local Docker, Kubernetes, and Terraform bootstrap configuration
-- `helm/wysh-sellers` – Helm chart for production deployment
+- `helm/sellers-hub` – Helm chart for production deployment
 
 ## Commands
 
@@ -23,4 +23,4 @@ npm run build
 
 ## Demo credentials
 
-Use `owner@wysh.test` with password `Password@123` against the API login endpoint to retrieve a JWT containing tenant and permission claims.
+Use `owner@sellers-hub.test` with password `Password@123` against the API login endpoint to retrieve a JWT containing tenant and permission claims.

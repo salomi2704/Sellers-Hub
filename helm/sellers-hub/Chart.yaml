@@ -1,5 +1,5 @@
 apiVersion: v2
-name: wysh-sellers
+name: sellers-hub
 version: 0.2.0
 appVersion: "1.0.0"
 description: Wysh Sellers Hub production deployment chart
@@ -12,11 +12,11 @@ helm:
         command: ["helm", "template", ".", "--output", "json | python3 -c \"import sys, json; d=json.load(sys.stdin); print('Chart validation OK')\"]
     postUpgrade:
       - name: run-migrations
-        command: ["kubectl", "exec", "-n", "wysh-sellers", "deploy/api", "--", "npm", "run", "typeorm:run"]
+        command: ["kubectl", "exec", "-n", "sellers-hub", "deploy/api", "--", "npm", "run", "typeorm:run"]
 
 annotations:
   # Metadata
-  repository: "https://github.com/salomi2704/wysh-sellers-hub"
+  repository: "https://github.com/salomi2704/sellers-hub-hub"
   chartsync: "auto"
 
 dependencies:

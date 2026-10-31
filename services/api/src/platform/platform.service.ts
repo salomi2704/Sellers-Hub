@@ -133,7 +133,7 @@ export class PlatformService {
   });
 
   getLiveness() {
-    return { status: 'ok', service: 'wysh-sellers-api' };
+    return { status: 'ok', service: 'sellers-hub-api' };
   }
 
   getReadiness() {
