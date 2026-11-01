@@ -272,7 +272,7 @@ function Shell() {
 function LoginPage() {
   const login = useSessionStore((state) => state.login)
   const navigate = useNavigate()
-  const [email, setEmail] = useState('owner@wysh.test')
+  const [email, setEmail] = useState('owner@test.com')
   const [password, setPassword] = useState('Password@123')
   const mutation = useMutation({
     mutationFn: () => fakeLogin(email, password),
@@ -392,7 +392,7 @@ function DashboardPage() {
 
 function OnboardingPage() {
   const [step, setStep] = useState(1)
-  const [slug, setSlug] = useState('wysh-collective')
+  const [slug, setSlug] = useState('sellers-collective')
   const debouncedSlug = useDebouncedValue(slug, 400)
   const slugQuery = useQuery({
     queryKey: ['slug-check', debouncedSlug],

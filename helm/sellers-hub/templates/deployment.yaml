@@ -28,7 +28,7 @@ spec:
             - name: FRONTEND_ORIGIN
               value: "http://localhost:4173"
             - name: DATABASE_URL
-              value: "postgres://wysh:wysh@postgres:5432/wysh"
+              value: "postgres://postgres:postgres@postgres:5432/sellers"
             - name: REDIS_URL
               value: "redis://redis:6379"
             - name: MINIO_ENDPOINT

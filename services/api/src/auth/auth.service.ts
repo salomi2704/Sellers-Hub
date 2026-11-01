@@ -10,10 +10,10 @@ import {
 
 const demoUser = {
   id: 'user_owner_demo',
-  email: 'owner@wysh.test',
+  email: 'owner@test.com',
   passwordHash: '$2b$10$Mh.YPA29xTZUJmjEbEnaYul7hG1fRXnNWkNwILUKqnkSyLdXHPrcW',
   sellerId: 'seller_demo',
-  storeId: 'store_wysh',
+  storeId: 'store_demo',
   role: 'OWNER' as const,
   permissions: ['catalog:write', 'orders:manage', 'finance:read', 'admin:read'],
 };

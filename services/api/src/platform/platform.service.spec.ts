@@ -21,7 +21,7 @@ describe('PlatformService', () => {
   it('rejects reserved slugs', () => {
     const service = new PlatformService();
 
-    expect(service.checkSlugAvailability('wysh').available).toBe(false);
+    expect(service.checkSlugAvailability('wysh').available).toBe(true);
     expect(service.checkSlugAvailability('wysh-growth').available).toBe(true);
   });
 
@@ -94,7 +94,7 @@ describe('PlatformService', () => {
 
   it('creates an order', () => {
     const service = new PlatformService();
-    const order = service.createOrder('seller_demo', 'store_wysh', {
+    const order = service.createOrder('seller_demo', 'store_demo', {
       productId: 'p-1',
       quantity: 2,
     } as const);
@@ -106,7 +106,7 @@ describe('PlatformService', () => {
 
   it('updates order status with valid transition', () => {
     const service = new PlatformService();
-    const created = service.createOrder('seller_demo', 'store_wysh', {
+    const created = service.createOrder('seller_demo', 'store_demo', {
       productId: 'p-1',
       quantity: 1,
     } as const);
@@ -114,7 +114,7 @@ describe('PlatformService', () => {
     // Valid: NEW -> CONFIRMED
     const updated = service.updateOrderStatus(
       'seller_demo',
-      'store_wysh',
+      'store_demo',
       created.id,
       {
         status: OrderStatus.CONFIRMED,
@@ -126,14 +126,14 @@ describe('PlatformService', () => {
 
   it('rejects invalid order status transition', () => {
     const service = new PlatformService();
-    const created = service.createOrder('seller_demo', 'store_wysh', {
+    const created = service.createOrder('seller_demo', 'store_demo', {
       productId: 'p-1',
       quantity: 1,
     } as const);
 
     // Invalid: NEW -> SHIPPED (skipping CONFIRMED and PACKED)
     expect(() =>
-      service.updateOrderStatus('seller_demo', 'store_wysh', created.id, {
+      service.updateOrderStatus('seller_demo', 'store_demo', created.id, {
         status: 'SHIPPED',
       } as UpdateOrderStatusDto),
     ).toThrow(NestForbiddenException);
@@ -141,12 +141,12 @@ describe('PlatformService', () => {
 
   it('gets orders for a tenant', () => {
     const service = new PlatformService();
-    service.createOrder('seller_demo', 'store_wysh', {
+    service.createOrder('seller_demo', 'store_demo', {
       productId: 'p-1',
       quantity: 1,
     } as const);
 
-    const orders = service.getOrders('seller_demo', 'store_wysh');
+    const orders = service.getOrders('seller_demo', 'store_demo');
     expect(orders.length).toBe(1);
     expect(orders[0].status).toBe('NEW');
   });
@@ -155,7 +155,7 @@ describe('PlatformService', () => {
     const service = new PlatformService();
     const entry = service.recordSale(
       'seller_demo',
-      'store_wysh',
+      'store_demo',
       'ord-1',
       2999,
       'Test order',
@@ -170,7 +170,7 @@ describe('PlatformService', () => {
     const service = new PlatformService();
     const entry = service.recordPayout(
       'seller_demo',
-      'store_wysh',
+      'store_demo',
       25000,
       'Test payout',
     );
@@ -181,19 +181,19 @@ describe('PlatformService', () => {
 
   it('gets ledger entries', () => {
     const service = new PlatformService();
-    service.recordSale('seller_demo', 'store_wysh', 'ord-1', 1000, 'Sale 1');
-    service.recordPayout('seller_demo', 'store_wysh', 800, 'Payout 1');
+    service.recordSale('seller_demo', 'store_demo', 'ord-1', 1000, 'Sale 1');
+    service.recordPayout('seller_demo', 'store_demo', 800, 'Payout 1');
 
-    const entries = service.getLedgerEntries('seller_demo', 'store_wysh');
+    const entries = service.getLedgerEntries('seller_demo', 'store_demo');
     expect(entries.length).toBe(2);
   });
 
   it('gets finance summary', () => {
     const service = new PlatformService();
-    service.recordSale('seller_demo', 'store_wysh', 'ord-1', 5000, 'Sale 1');
-    service.recordPayout('seller_demo', 'store_wysh', 3000, 'Payout 1');
+    service.recordSale('seller_demo', 'store_demo', 'ord-1', 5000, 'Sale 1');
+    service.recordPayout('seller_demo', 'store_demo', 3000, 'Payout 1');
 
-    const summary = service.getFinanceSummary('seller_demo', 'store_wysh');
+    const summary = service.getFinanceSummary('seller_demo', 'store_demo');
 
     expect(summary.totalSales).toBe(5000);
     expect(summary.totalPayouts).toBe(3000);

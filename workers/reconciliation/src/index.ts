@@ -22,13 +22,13 @@ export const detectSettlementMismatches = (): SettlementBatch[] => {
   // In a real system, we'd query the database for all sellers/stores
   // For this demo, we'll check the demo tenant
 
-  const demoKey = 'seller_demo:store_wysh';
+  const demoKey = 'seller_demo:store_demo';
   const ledgerEntries = [
     // Simulated ledger entries for the demo tenant
-    { id: 'led-1', sellerId: 'seller_demo', storeId: 'store_wysh', type: 'sale', amount: 50000, referenceId: 'ord-1', description: 'Order 1', createdAt: Date.now() - 86400000, status: 'completed' },
-    { id: 'led-2', sellerId: 'seller_demo', storeId: 'store_wysh', type: 'sale', amount: 35000, referenceId: 'ord-2', description: 'Order 2', createdAt: Date.now() - 43200000, status: 'completed' },
-    { id: 'led-3', sellerId: 'seller_demo', storeId: 'store_wysh', type: 'payout', amount: 40000, referenceId: '', description: 'Settlement Batch 1', createdAt: Date.now() - 86400000, status: 'completed' },
-    { id: 'led-4', sellerId: 'seller_demo', storeId: 'store_wysh', type: 'payout', amount: 25000, referenceId: '', description: 'Settlement Batch 2', createdAt: Date.now() - 43200000, status: 'completed' },
+    { id: 'led-1', sellerId: 'seller_demo', storeId: 'store_demo', type: 'sale', amount: 50000, referenceId: 'ord-1', description: 'Order 1', createdAt: Date.now() - 86400000, status: 'completed' },
+    { id: 'led-2', sellerId: 'seller_demo', storeId: 'store_demo', type: 'sale', amount: 35000, referenceId: 'ord-2', description: 'Order 2', createdAt: Date.now() - 43200000, status: 'completed' },
+    { id: 'led-3', sellerId: 'seller_demo', storeId: 'store_demo', type: 'payout', amount: 40000, referenceId: '', description: 'Settlement Batch 1', createdAt: Date.now() - 86400000, status: 'completed' },
+    { id: 'led-4', sellerId: 'seller_demo', storeId: 'store_demo', type: 'payout', amount: 25000, referenceId: '', description: 'Settlement Batch 2', createdAt: Date.now() - 43200000, status: 'completed' },
   ];
 
   // Calculate expected payout (total sales) and actual payout (total payouts)
@@ -46,7 +46,7 @@ export const detectSettlementMismatches = (): SettlementBatch[] => {
   if (Math.abs(discrepancy) > 1) {
     mismatches.push({
       sellerId: 'seller_demo',
-      storeId: 'store_wysh',
+      storeId: 'store_demo',
       expectedPayout: sales,
       actualPayout: payouts,
       discrepancy,

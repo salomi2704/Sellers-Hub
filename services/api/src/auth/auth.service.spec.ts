@@ -15,16 +15,16 @@ describe('AuthService', () => {
       if (token === 'valid-reset-token') {
         return {
           sub: 'user_owner_demo',
-          email: 'owner@wysh.test',
+          email: 'owner@test.com',
           type: 'reset',
         };
       }
       if (token === 'valid-refresh-token') {
         return {
           sub: 'user_owner_demo',
-          email: 'owner@wysh.test',
+          email: 'owner@test.com',
           sellerId: 'seller_demo',
-          storeId: 'store_wysh',
+          storeId: 'store_demo',
           role: 'OWNER',
           permissions: [
             'catalog:write',
@@ -38,7 +38,7 @@ describe('AuthService', () => {
       if (token === 'valid-access-token') {
         return {
           sub: 'user_owner_demo',
-          email: 'owner@wysh.test',
+          email: 'owner@test.com',
           type: 'access',
         };
       }
@@ -55,19 +55,19 @@ describe('AuthService', () => {
   describe('login', () => {
     it('should login with correct credentials', async () => {
       const result = await service.login({
-        email: 'owner@wysh.test',
+        email: 'owner@test.com',
         password: 'Password@123',
       });
 
       expect(result).toBeDefined();
-      expect(result.user.email).toBe('owner@wysh.test');
+      expect(result.user.email).toBe('owner@test.com');
       expect(result.user.sellerId).toBe('seller_demo');
       expect(result.user.role).toBe('OWNER');
     });
 
     it('should throw UnauthorizedException with wrong password', async () => {
       await expect(
-        service.login({ email: 'owner@wysh.test', password: 'wrong' }),
+        service.login({ email: 'owner@test.com', password: 'wrong' }),
       ).rejects.toThrow(UnauthorizedException);
     });
 
@@ -87,7 +87,7 @@ describe('AuthService', () => {
       expect(result).toBeDefined();
       expect(result.accessToken).toBeDefined();
       expect(result.refreshToken).toBeDefined();
-      expect(result.user.email).toBe('owner@wysh.test');
+      expect(result.user.email).toBe('owner@test.com');
     });
 
     it('should throw UnauthorizedException when token type is not refresh', async () => {
@@ -99,7 +99,7 @@ describe('AuthService', () => {
 
   describe('forgotPassword', () => {
     it('should generate reset token for registered email', async () => {
-      const dto: CreateResetPasswordDto = { email: 'owner@wysh.test' };
+      const dto: CreateResetPasswordDto = { email: 'owner@test.com' };
       const result = await service.forgotPassword(dto);
 
       expect(result).toBeDefined();
@@ -118,7 +118,7 @@ describe('AuthService', () => {
 
   describe('resetPassword', () => {
     it('should reset password with valid token', async () => {
-      const dto: CreateResetPasswordDto = { email: 'owner@wysh.test' };
+      const dto: CreateResetPasswordDto = { email: 'owner@test.com' };
       const resetToken = await service.forgotPassword(dto);
 
       const result = await service.resetPassword({
@@ -130,7 +130,7 @@ describe('AuthService', () => {
     });
 
     it('should throw UnauthorizedException when token already used', async () => {
-      const dto: CreateResetPasswordDto = { email: 'owner@wysh.test' };
+      const dto: CreateResetPasswordDto = { email: 'owner@test.com' };
       const resetToken = await service.forgotPassword(dto);
 
       await service.resetPassword({
