@@ -9,9 +9,12 @@ import {
   Redirect,
   UseGuards,
   UseInterceptors,
+  Put,
+  Delete,
 } from '@nestjs/common';
 import { AllowRoles, RequirePermissions } from '../common/roles.decorator';
 import { RolesGuard } from '../common/roles.guard';
+import { SlugQueryDto } from './dto/slug-query.dto';
 import { TenantContextService } from '../common/tenant-context.service';
 import { TenantInterceptor } from '../common/tenant.interceptor';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -19,11 +22,7 @@ import { AnalyticsEventDto } from './dto/analytics-event.dto';
 import { DiscoveryRequestDto } from './dto/discovery-request.dto';
 import { PaginationQueryDto } from './dto/pagination-query.dto';
 import { CreateProductDto, UpdateProductDto } from './dto/create-product.dto';
-import {
-  OrderStatus,
-  CreateOrderDto,
-  UpdateOrderStatusDto,
-} from './dto/create-order.dto';
+import { CreateOrderDto, UpdateOrderStatusDto } from './dto/create-order.dto';
 import { PlatformService } from './platform.service';
 
 @Controller({ path: '/', version: '1' })
@@ -150,7 +149,7 @@ export class PlatformController {
   @Get('catalog/orders')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @RequirePermissions('orders:manage')
-  getOrders(@Query() query: { sellerId?: string; storeId?: string }) {
+  getOrders() {
     const tenant = this.tenantContext.getTenant();
     return this.platformService.getOrders(tenant.sellerId, tenant.storeId);
   }

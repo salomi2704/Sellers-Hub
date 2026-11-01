@@ -61,12 +61,12 @@ const performanceData = [
 ]
 
 const baseProducts: Product[] = [
-  { id: 'p-1', title: 'Wysh Portable Blender', sku: 'WB-100', brand: 'Wysh', status: 'ACTIVE', price: 2499, inventory: 128 },
-  { id: 'p-2', title: 'Wysh Cold Brew Bottle', sku: 'WB-101', brand: 'Wysh', status: 'DRAFT', price: 1299, inventory: 45 },
-  { id: 'p-3', title: 'Wysh Travel Kettle', sku: 'WB-102', brand: 'Wysh', status: 'ACTIVE', price: 3199, inventory: 68 },
-  { id: 'p-4', title: 'Wysh Meal Jar', sku: 'WB-103', brand: 'Wysh', status: 'ARCHIVED', price: 899, inventory: 0 },
-  { id: 'p-5', title: 'Wysh Smart Tumbler', sku: 'WB-104', brand: 'Wysh', status: 'ACTIVE', price: 1899, inventory: 94 },
-  { id: 'p-6', title: 'Wysh Runner Bottle', sku: 'WB-105', brand: 'Wysh', status: 'ACTIVE', price: 799, inventory: 212 },
+  { id: 'p-1', title: 'Smart Blender', sku: 'WB-100', brand: 'BrandA', status: 'ACTIVE', price: 2499, inventory: 128 },
+  { id: 'p-2', title: 'Cold Brew Bottle', sku: 'WB-101', brand: 'BrandA', status: 'DRAFT', price: 1299, inventory: 45 },
+  { id: 'p-3', title: 'Travel Kettle', sku: 'WB-102', brand: 'BrandA', status: 'ACTIVE', price: 3199, inventory: 68 },
+  { id: 'p-4', title: 'Meal Jar', sku: 'WB-103', brand: 'BrandA', status: 'ARCHIVED', price: 899, inventory: 0 },
+  { id: 'p-5', title: 'Smart Tumbler', sku: 'WB-104', brand: 'BrandA', status: 'ACTIVE', price: 1899, inventory: 94 },
+  { id: 'p-6', title: 'Runner Bottle', sku: 'WB-105', brand: 'BrandA', status: 'ACTIVE', price: 799, inventory: 212 },
 ]
 
 const comparisonOffers: Offer[] = [
@@ -103,18 +103,18 @@ const fetchProducts = async (page: number, search: string, products: Product[]) 
 
 const checkSlugAvailability = async (slug: string) => {
   await wait(300)
-  return { available: !['wysh', 'admin', 'seller'].includes(slug.toLowerCase()) }
+  return { available: !['admin', 'seller'].includes(slug.toLowerCase()) }
 }
 
 const fakeLogin = async (email: string, password: string) => {
   await wait(300)
-  if (email !== 'owner@wysh.test' || password !== 'Password@123') {
-    throw new Error('Use owner@wysh.test / Password@123 to access the tenant workspace.')
+  if (email !== 'owner@test.com' || password !== 'Password@123') {
+    throw new Error('Use owner@test.com / Password@123 to access the tenant workspace.')
   }
 
   return {
     sellerId: 'seller_demo',
-    storeId: 'store_wysh',
+    storeId: 'store_demo',
     role: 'OWNER' as Role,
     permissions: ['catalog:write', 'orders:manage', 'finance:read', 'admin:read'],
   }
@@ -203,13 +203,13 @@ function Shell() {
               <Bot className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Wysh Sellers Hub</p>
+              <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Sellers Hub</p>
               <h1 className="text-lg font-semibold">Tenant OS</h1>
             </div>
           </div>
           <div className="mt-6 rounded-2xl border border-white/10 bg-slate-950/70 p-4 text-sm text-slate-300">
             <p className="font-medium text-white">{sellerId || 'seller_demo'}</p>
-            <p className="mt-1">{storeId || 'store_wysh'} • {role}</p>
+            <p className="mt-1">{storeId || 'store_demo'} • {role}</p>
           </div>
           <nav className="mt-6 space-y-2">
             {navigation.map(({ to, label, icon: Icon }) => {
@@ -286,7 +286,7 @@ function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-slate-950 px-4 py-10 text-white">
       <div className="grid w-full max-w-5xl gap-6 lg:grid-cols-[1.2fr_0.8fr]">
         <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-cyan-500/20 via-slate-900 to-slate-900 p-8 shadow-2xl shadow-slate-950/60">
-          <p className="text-sm uppercase tracking-[0.35em] text-cyan-300">Wysh Sellers Hub</p>
+          <p className="text-sm uppercase tracking-[0.35em] text-cyan-300">Sellers Hub</p>
           <h1 className="mt-4 text-4xl font-semibold leading-tight">Run seller ops, finance, discovery, and affiliate intelligence from one control plane.</h1>
           <div className="mt-8 grid gap-4 md:grid-cols-2">
             <FeatureCard title="Strict tenancy" description="Tenant claims are preserved across every operational view." />
@@ -449,9 +449,9 @@ function CatalogPage({ onToast }: { onToast?: (message: string) => void }) {
       await wait(250)
       return {
         id: `p-${products.length + 1}`,
-        title: 'Wysh AI Matched Flask',
+        title: 'AI Matched Flask',
         sku: `WB-10${products.length}`,
-        brand: 'Wysh',
+        brand: 'BrandA',
         status: 'DRAFT' as ProductStatus,
         price: 2099,
         inventory: 36,
@@ -459,7 +459,7 @@ function CatalogPage({ onToast }: { onToast?: (message: string) => void }) {
     },
     onMutate: async () => {
       await queryClient.cancelQueries({ queryKey: ['catalog'] })
-      const optimisticProduct: Product = { id: `temp-${Date.now()}`, title: 'Saving draft…', sku: 'PENDING', brand: 'Wysh', status: 'DRAFT', price: 0, inventory: 0 }
+      const optimisticProduct: Product = { id: `temp-${Date.now()}`, title: 'Saving draft…', sku: 'PENDING', brand: 'BrandA', status: 'DRAFT', price: 0, inventory: 0 }
       setProducts((current) => [optimisticProduct, ...current])
       return optimisticProduct.id
     },
@@ -653,7 +653,7 @@ function ComparisonPage() {
           <div className="hero-image">WB</div>
           <div className="mt-6 flex items-center justify-between">
             <div>
-              <h3 className="text-2xl font-semibold">Wysh Portable Blender</h3>
+              <h3 className="text-2xl font-semibold">Portable Blender</h3>
               <p className="mt-2 text-sm text-slate-300">Canonical affiliate product • category: Home Appliances</p>
             </div>
             <span className="rounded-full bg-emerald-400/15 px-3 py-1 text-sm text-emerald-200">98% exact match</span>

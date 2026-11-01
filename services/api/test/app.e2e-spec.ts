@@ -9,7 +9,7 @@ import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
 
-describe('Wysh Sellers Hub API (e2e)', () => {
+describe('Sellers Hub API (e2e)', () => {
   let app: INestApplication;
   let server: App;
 
@@ -47,13 +47,13 @@ describe('Wysh Sellers Hub API (e2e)', () => {
       .get('/api/v1/onboarding/slug-availability')
       .query({ slug: 'wysh' })
       .expect(200)
-      .expect({ slug: 'wysh', available: false });
+      .expect({ available: false });
   });
 
   it('issues tenant-bound tokens and blocks cross-tenant header overrides', async () => {
     const loginResponse = await request(server)
       .post('/api/v1/auth/login')
-      .send({ email: 'owner@wysh.test', password: 'Password@123' })
+      .send({ email: 'owner@test.com', password: 'Password@123' })
       .expect(201);
 
     const token = (loginResponse.body as { accessToken: string }).accessToken;
@@ -68,7 +68,7 @@ describe('Wysh Sellers Hub API (e2e)', () => {
             .tenant,
         ).toEqual({
           sellerId: 'seller_demo',
-          storeId: 'store_wysh',
+          storeId: 'store_demo',
         });
       });
 

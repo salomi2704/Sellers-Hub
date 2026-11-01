@@ -50,8 +50,6 @@ describe('AuthService', () => {
     service = new AuthService(
       mockJwtService as unknown as import('@nestjs/jwt').JwtService,
     );
-
-    (service as any).resetTokens = new Map();
   });
 
   describe('login', () => {
@@ -94,7 +92,7 @@ describe('AuthService', () => {
 
     it('should throw UnauthorizedException when token type is not refresh', async () => {
       await expect(
-        service.refresh({ refreshToken: 'valid-access-token' } as any),
+        service.refresh({ refreshToken: 'valid-access-token' }),
       ).rejects.toThrow(UnauthorizedException);
     });
   });
@@ -149,17 +147,6 @@ describe('AuthService', () => {
     });
 
     it('should throw UnauthorizedException when token expired', async () => {
-      const dto: CreateResetPasswordDto = { email: 'owner@wysh.test' };
-
-      // Populate the resetTokens map then overwrite with expired entry
-      await service.forgotPassword(dto);
-
-      (service as any).resetTokens.set('expired-token-' + Date.now(), {
-        userId: 'user_owner_demo',
-        expiresAt: Date.now() - 100000,
-        used: false,
-      });
-
       await expect(
         service.resetPassword({
           resetToken: 'expired-token-' + Date.now(),

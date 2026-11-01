@@ -1,4 +1,4 @@
-import { IsJWT, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsJWT, IsString, MinLength } from 'class-validator';
 
 export class CreateResetPasswordDto {
   @IsEmail()

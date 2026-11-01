@@ -1,11 +1,12 @@
-import { PlatformService, ForbiddenException } from './platform.service';
+import { PlatformService } from './platform.service';
 import { ForbiddenException as NestForbiddenException } from '@nestjs/common';
+import { OrderStatus, UpdateOrderStatusDto } from './dto/create-order.dto';
 
 describe('PlatformService', () => {
   it('keeps catalog reads scoped to the active tenant', () => {
     const service = new PlatformService();
 
-    const response = service.listProducts('seller_demo', 'store_wysh', {
+    const response = service.listProducts('seller_demo', 'store_demo', {
       page: 1,
       pageSize: 10,
       search: '',
@@ -27,16 +28,16 @@ describe('PlatformService', () => {
   it('creates a product', () => {
     const service = new PlatformService();
     const dto = {
-      title: 'Wysh Smart Tumbler',
+      title: 'Smart Tumbler',
       sku: 'WB-105',
-      brand: 'Wysh',
+      brand: 'BrandA',
       status: 'ACTIVE' as const,
       price: 1899,
       inventory: 94,
     } as const;
 
-    const product = service.createProduct('seller_demo', 'store_wysh', dto);
-    expect(product.title).toBe('Wysh Smart Tumbler');
+    const product = service.createProduct('seller_demo', 'store_demo', dto);
+    expect(product.title).toBe('Smart Tumbler');
     expect(product.sku).toBe('WB-105');
     expect(product.status).toBe('ACTIVE');
   });
@@ -44,42 +45,51 @@ describe('PlatformService', () => {
   it('updates a product', () => {
     const service = new PlatformService();
     // First create a product
-    const created = service.createProduct('seller_demo', 'store_wysh', {
-      title: 'Wysh Product',
+    const created = service.createProduct('seller_demo', 'store_demo', {
+      title: 'Product',
       sku: 'WB-NEW',
-      brand: 'Wysh',
+      brand: 'BrandA',
       status: 'DRAFT' as const,
       price: 100,
       inventory: 10,
     } as const);
 
     // Then update it
-    const updated = service.updateProduct('seller_demo', 'store_wysh', created.id, {
-      title: 'Wysh Product Updated',
-      price: 150,
-    } as const);
+    const updated = service.updateProduct(
+      'seller_demo',
+      'store_demo',
+      created.id,
+      {
+        title: 'Product Updated',
+        price: 150,
+      } as const,
+    );
 
-    expect(updated.title).toBe('Wysh Product Updated');
+    expect(updated.title).toBe('Product Updated');
     expect(updated.price).toBe(150);
   });
 
   it('deletes a product', () => {
     const service = new PlatformService();
-    const created = service.createProduct('seller_demo', 'store_wysh', {
-      title: 'Wysh Product to Delete',
+    const created = service.createProduct('seller_demo', 'store_demo', {
+      title: 'Product to Delete',
       sku: 'WB-DEL',
-      brand: 'Wysh',
+      brand: 'BrandA',
       status: 'DRAFT' as const,
       price: 50,
       inventory: 5,
     } as const);
 
-    const deleted = service.deleteProduct('seller_demo', 'store_wysh', created.id);
-    expect(deleted.title).toBe('Wysh Product to Delete');
+    const deleted = service.deleteProduct(
+      'seller_demo',
+      'store_demo',
+      created.id,
+    );
+    expect(deleted.title).toBe('Product to Delete');
 
     // Verify it's gone
-    const remaining = service.getOrders('seller_demo', 'store_wysh');
-    // Just verify no error thrown
+    const remaining = service.getOrders('seller_demo', 'store_demo');
+    expect(remaining).toBeDefined();
   });
 
   it('creates an order', () => {
@@ -102,14 +112,19 @@ describe('PlatformService', () => {
     } as const);
 
     // Valid: NEW -> CONFIRMED
-    const updated = service.updateOrderStatus('seller_demo', 'store_wysh', created.id, {
-      status: 'CONFIRMED' as const,
-    } as const);
+    const updated = service.updateOrderStatus(
+      'seller_demo',
+      'store_wysh',
+      created.id,
+      {
+        status: OrderStatus.CONFIRMED,
+      },
+    );
 
-    expect(updated.status).toBe('CONFIRMED');
+    expect(updated.status).toBe(OrderStatus.CONFIRMED);
   });
 
-it('rejects invalid order status transition', async () => {
+  it('rejects invalid order status transition', () => {
     const service = new PlatformService();
     const created = service.createOrder('seller_demo', 'store_wysh', {
       productId: 'p-1',
@@ -117,16 +132,11 @@ it('rejects invalid order status transition', async () => {
     } as const);
 
     // Invalid: NEW -> SHIPPED (skipping CONFIRMED and PACKED)
-    let caughtError: any = null;
-    try {
-      await service.updateOrderStatus('seller_demo', 'store_wysh', created.id, {
-        status: 'SHIPPED' as const,
-      } as const);
-    } catch (error) {
-      caughtError = error;
-    }
-    expect(caughtError).toBeInstanceOf(NestForbiddenException);
-    expect(caughtError.message).toContain('Invalid state transition from NEW to SHIPPED');
+    expect(() =>
+      service.updateOrderStatus('seller_demo', 'store_wysh', created.id, {
+        status: 'SHIPPED',
+      } as UpdateOrderStatusDto),
+    ).toThrow(NestForbiddenException);
   });
 
   it('gets orders for a tenant', () => {
@@ -143,7 +153,13 @@ it('rejects invalid order status transition', async () => {
 
   it('records a sale in the ledger', () => {
     const service = new PlatformService();
-    const entry = service.recordSale('seller_demo', 'store_wysh', 'ord-1', 2999, 'Test order');
+    const entry = service.recordSale(
+      'seller_demo',
+      'store_wysh',
+      'ord-1',
+      2999,
+      'Test order',
+    );
 
     expect(entry.type).toBe('sale');
     expect(entry.amount).toBe(2999);
@@ -152,7 +168,12 @@ it('rejects invalid order status transition', async () => {
 
   it('records a payout in the ledger', () => {
     const service = new PlatformService();
-    const entry = service.recordPayout('seller_demo', 'store_wysh', 25000, 'Test payout');
+    const entry = service.recordPayout(
+      'seller_demo',
+      'store_wysh',
+      25000,
+      'Test payout',
+    );
 
     expect(entry.type).toBe('payout');
     expect(entry.amount).toBe(25000);

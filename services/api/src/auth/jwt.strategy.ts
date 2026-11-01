@@ -11,7 +11,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
       secretOrKey:
-        configService.get<string>('JWT_SECRET') ?? 'wysh-local-secret',
+        configService.get<string>('JWT_SECRET') ?? 'sellers-hub-local-secret',
     });
   }
 

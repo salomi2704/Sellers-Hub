@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: wysh-frontend
+  name: sellers-frontend
 spec:
   replicas: 2
   selector:
@@ -10,7 +10,7 @@ spec:
   template:
     metadata:
       labels:
-        app: wysh-frontend
+app: sellers-frontend
     spec:
       containers:
         - name: frontend

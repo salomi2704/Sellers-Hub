@@ -21,11 +21,11 @@ const tenantKey = (sellerId: string, storeId: string) =>
 export class PlatformService {
   private readonly products = new Map([
     [
-      tenantKey('seller_demo', 'store_wysh'),
+      tenantKey('seller_demo', 'store_demo'),
       [
         {
           id: 'p-1',
-          title: 'Wysh Portable Blender',
+title: 'Portable Blender',
           sku: 'WB-100',
           status: 'ACTIVE',
           price: 2499,
@@ -33,7 +33,7 @@ export class PlatformService {
         },
         {
           id: 'p-2',
-          title: 'Wysh Cold Brew Bottle',
+          title: 'Cold Brew Bottle',
           sku: 'WB-101',
           status: 'DRAFT',
           price: 1299,
@@ -41,7 +41,7 @@ export class PlatformService {
         },
         {
           id: 'p-3',
-          title: 'Wysh Travel Kettle',
+          title: 'Travel Kettle',
           sku: 'WB-102',
           status: 'ACTIVE',
           price: 3199,
@@ -58,6 +58,8 @@ export class PlatformService {
       productId: string;
       quantity: number;
       status: OrderStatus;
+      carrier?: string;
+      trackingNumber?: string;
       sellerId: string;
       storeId: string;
       createdAt: number;
@@ -509,7 +511,7 @@ export class PlatformService {
       query,
       canonicalProduct: {
         id: 'canonical-1',
-        title: 'Wysh Portable Blender',
+        title: 'Portable Blender',
         matchingType,
         confidence,
       },

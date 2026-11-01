@@ -21,7 +21,7 @@ async function bootstrap() {
   );
 
   const config = new DocumentBuilder()
-    .setTitle('Wysh Sellers Hub API')
+    .setTitle('Sellers Hub API')
     .setDescription(
       'Multi-tenant seller operations and affiliate intelligence service',
     )

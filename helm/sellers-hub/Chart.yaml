@@ -2,7 +2,7 @@ apiVersion: v2
 name: sellers-hub
 version: 0.2.0
 appVersion: "1.0.0"
-description: Wysh Sellers Hub production deployment chart
+description: Sellers Hub production deployment chart
 
 helm:
   # Hooks for deployment validation
@@ -32,7 +32,7 @@ image:
 ingress:
   enabled: true
   className: nginx
-  host: wysh.example.com
+  host: sellers.example.com
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/use-regex: "true"

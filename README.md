@@ -23,4 +23,4 @@ npm run build
 
 ## Demo credentials
 
-Use `owner@sellers-hub.test` with password `Password@123` against the API login endpoint to retrieve a JWT containing tenant and permission claims.
+Use `owner@wysh.test` with password `Password@123` against the API login endpoint to retrieve a JWT containing tenant and permission claims.

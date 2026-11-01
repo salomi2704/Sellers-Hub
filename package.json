@@ -2,7 +2,7 @@
   "name": "sellers-hub",
   "version": "1.0.0",
   "private": true,
-  "description": "Wysh Sellers Hub enterprise commerce operating system monorepo",
+  "description": "Sellers Hub enterprise commerce operating system monorepo",
   "scripts": {
     "lint": "npm --prefix apps/frontend run lint && npm --prefix services/api run lint",
     "build": "npm --prefix apps/frontend run build && npm --prefix services/api run build",

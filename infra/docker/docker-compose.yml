@@ -33,7 +33,7 @@ services:
       - PORT=3000
       - JWT_SECRET=${JWT_SECRET:-local-secret}
       - FRONTEND_ORIGIN=http://localhost:4173
-      - DATABASE_URL=postgres://wysh:wysh@postgres:5432/wysh
+      - DATABASE_URL=postgres://postgres:postgres@postgres:5432/sellers
       - REDIS_URL=redis://redis:6379
       - MINIO_ENDPOINT=http://minio:9000
       - MINIO_ROOT_USER=minio
@@ -55,14 +55,14 @@ services:
   postgres:
     image: postgres:17-alpine
     environment:
-      - POSTGRES_DB=wysh
-      - POSTGRES_USER=wysh
-      - POSTGRES_PASSWORD=wysh
+      - POSTGRES_DB=sellers
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
     ports:
       - '5432:5432'
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U wysh -d wysh"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d sellers"]
       interval: 30s
       timeout: 10s
       retries: 3

@@ -1,5 +1,3 @@
-import { TenantContextService } from '../services/api/src/common/tenant-context.service';
-
 // Base API service - will be enhanced to connect to the real backend
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -81,11 +79,11 @@ export const getCurrentSeller = (): { sellerId: string; storeId: string } | null
 export const apiFetch = async (
   endpoint: string,
   options: RequestInit = {}
-): Promise<any> => {
+): Promise<unknown> => {
   const token = getAuthToken();
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...options.headers,
+    ...((options.headers as Record<string, string>) || {}),
   };
 
   if (token) {
@@ -99,9 +97,9 @@ export const apiFetch = async (
 
   if (response.status === 401) {
     // Token might be expired, try refresh
-    const refreshToken = localStorage.getItem('wyh_refresh_token');
-    if (refreshToken) {
-      const newAuth = await refreshToken(refreshToken);
+    const refresh = localStorage.getItem('wyh_refresh_token');
+    if (refresh) {
+      const newAuth = await refreshToken(refresh);
       setAuthToken(newAuth.accessToken);
       headers['Authorization'] = `Bearer ${newAuth.accessToken}`;
       return apiFetch(endpoint, { ...options, headers });
