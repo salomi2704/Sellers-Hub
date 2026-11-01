@@ -30,6 +30,10 @@ import { PlatformModule } from './platform/platform.module';
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
     },
+    {
+      provide: 'REQUEST_TIMEOUT',
+      useValue: 30_000,
+    },
   ],
 })
 export class AppModule {}

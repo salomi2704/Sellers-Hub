@@ -8,3 +8,23 @@ export const paginate = <T>(items: T[], page: number, pageSize: number) => ({
   pageSize,
   total: items.length,
 });
+
+export const throttle = <T>(fn: (...args: any[]) => T, limit: number) => {
+  let inFlight = false;
+  return (...args: any[]) => {
+    if (inFlight) return;
+    inFlight = true;
+    setTimeout(() => {
+      inFlight = false;
+    }, limit);
+    return fn(...args);
+  };
+};
+
+export const debounce = <T>(fn: (...args: any[]) => T, wait: number) => {
+  let timeout: NodeJS.Timeout;
+  return (...args: any[]) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => fn(...args), wait);
+  };
+};
